@@ -1,6 +1,7 @@
 # Import phase
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+#
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Te%25m%25Fj4fQye2S%2AA@localhost:5432/inventory_db'
@@ -47,6 +48,17 @@ def delete_product(product_id):
     db.session.delete(product)
     db.session.commit()
     return jsonify({'message': 'Product deleted!'})
+
+@app.route('/api/products/<int:product_id>/restock', methods=['POST'])
+def restock_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    data = request.get_json()
+    quantity = data.get('quantity', 0)
+    if quantity <= 0:
+        return jsonify({'error': 'Quantity must be positive'}), 400
+    product.stock += quantity
+    db.session.commit()
+    return jsonify({'message': f'Product {product.name} restocked with {quantity} units. New stock: {product.stock}'})
 
 if __name__ == '__main__':
     with app.app_context():
