@@ -1,0 +1,184 @@
+{
+    "products": [
+      {
+        "name": "MacBook Pro 14-inch",
+        "sku": "APPLE001",
+        "description": "Apple MacBook Pro with M3 chip, 14-inch display",
+        "price": 1999.99,
+        "stock_level": 15,
+        "min_stock_threshold": 5,
+        "category": "Electronics"
+      },
+      {
+        "name": "iPhone 15 Pro",
+        "sku": "APPLE002", 
+        "description": "Latest iPhone with titanium design and A17 Pro chip",
+        "price": 999.99,
+        "stock_level": 25,
+        "min_stock_threshold": 10,
+        "category": "Electronics"
+      },
+      {
+        "name": "AirPods Pro",
+        "sku": "APPLE003",
+        "description": "Wireless earbuds with active noise cancellation",
+        "price": 249.99,
+        "stock_level": 3,
+        "min_stock_threshold": 15,
+        "category": "Electronics"
+      },
+      {
+        "name": "iPad Air",
+        "sku": "APPLE004",
+        "description": "Powerful and versatile iPad with M1 chip",
+        "price": 599.99,
+        "stock_level": 8,
+        "min_stock_threshold": 12,
+        "category": "Electronics"
+      },
+      {
+        "name": "Dell Monitor 27-inch",
+        "sku": "DELL001",
+        "description": "4K UHD monitor with USB-C connectivity",
+        "price": 349.99,
+        "stock_level": 20,
+        "min_stock_threshold": 8,
+        "category": "Electronics"
+      },
+      {
+        "name": "Logitech Wireless Mouse",
+        "sku": "LOG001",
+        "description": "Ergonomic wireless mouse with precision tracking",
+        "price": 49.99,
+        "stock_level": 2,
+        "min_stock_threshold": 20,
+        "category": "Electronics"
+      },
+      {
+        "name": "Mechanical Keyboard RGB",
+        "sku": "KEY001",
+        "description": "Gaming mechanical keyboard with RGB backlighting",
+        "price": 129.99,
+        "stock_level": 12,
+        "min_stock_threshold": 6,
+        "category": "Electronics"
+      },
+      {
+        "name": "Office Chair Premium",
+        "sku": "CHAIR001",
+        "description": "Ergonomic office chair with lumbar support",
+        "price": 299.99,
+        "stock_level": 5,
+        "min_stock_threshold": 8,
+        "category": "Furniture"
+      },
+      {
+        "name": "Standing Desk",
+        "sku": "DESK001",
+        "description": "Height adjustable standing desk with memory settings",
+        "price": 499.99,
+        "stock_level": 0,
+        "min_stock_threshold": 4,
+        "category": "Furniture"
+      },
+      {
+        "name": "Coffee Machine Espresso",
+        "sku": "COFFEE001",
+        "description": "Professional espresso machine with milk frother",
+        "price": 799.99,
+        "stock_level": 6,
+        "min_stock_threshold": 3,
+        "category": "Kitchen"
+      },
+      {
+        "name": "Bluetooth Speaker Portable",
+        "sku": "SPEAK001",
+        "description": "Waterproof portable speaker with 20-hour battery",
+        "price": 89.99,
+        "stock_level": 18,
+        "min_stock_threshold": 10,
+        "category": "Electronics"
+      },
+      {
+        "name": "Smart Watch Fitness",
+        "sku": "WATCH001",
+        "description": "Fitness tracking smartwatch with heart rate monitor",
+        "price": 299.99,
+        "stock_level": 0,
+        "min_stock_threshold": 8,
+        "category": "Electronics"
+      },
+      {
+        "name": "Wireless Headphones",
+        "sku": "HEAD001",
+        "description": "Over-ear wireless headphones with noise cancellation",
+        "price": 199.99,
+        "stock_level": 1,
+        "min_stock_threshold": 12,
+        "category": "Electronics"
+      },
+      {
+        "name": "USB-C Hub",
+        "sku": "HUB001",
+        "description": "7-in-1 USB-C hub with HDMI and ethernet ports",
+        "price": 59.99,
+        "stock_level": 25,
+        "min_stock_threshold": 15,
+        "category": "Electronics"
+      },
+      {
+        "name": "External SSD 1TB",
+        "sku": "SSD001",
+        "description": "High-speed portable SSD with USB 3.2 interface",
+        "price": 149.99,
+        "stock_level": 14,
+        "min_stock_threshold": 8,
+        "category": "Electronics"
+      },
+      {
+        "name": "Gaming Mouse Pad",
+        "sku": "PAD001",
+        "description": "Large RGB gaming mouse pad with smooth surface",
+        "price": 29.99,
+        "stock_level": 30,
+        "min_stock_threshold": 20,
+        "category": "Gaming"
+      },
+      {
+        "name": "Webcam 4K",
+        "sku": "CAM001",
+        "description": "Ultra HD webcam with auto-focus and noise reduction",
+        "price": 129.99,
+        "stock_level": 3,
+        "min_stock_threshold": 10,
+        "category": "Electronics"
+      },
+      {
+        "name": "Power Bank 20000mAh",
+        "sku": "POWER001",
+        "description": "High capacity power bank with fast charging support",
+        "price": 39.99,
+        "stock_level": 22,
+        "min_stock_threshold": 15,
+        "category": "Electronics"
+      },
+      {
+        "name": "Phone Case iPhone 15",
+        "sku": "CASE001",
+        "description": "Protective silicone case for iPhone 15 series",
+        "price": 19.99,
+        "stock_level": 2,
+        "min_stock_threshold": 25,
+        "category": "Accessories"
+      },
+      {
+        "name": "Desk Lamp LED",
+        "sku": "LAMP001",
+        "description": "Adjustable LED desk lamp with touch controls",
+        "price": 45.99,
+        "stock_level": 8,
+        "min_stock_threshold": 12,
+        "category": "Office"
+      }
+    ]
+  }

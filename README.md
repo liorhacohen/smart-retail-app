@@ -1,6 +1,6 @@
 # Inventory Management System
 
-A comprehensive inventory management system for retail store chains built with Flask, PostgreSQL, and Docker.
+A comprehensive inventory management system for retail store chains built with Flask, PostgreSQL, Docker, and Kubernetes.
 
 ## Features
 
@@ -9,22 +9,32 @@ A comprehensive inventory management system for retail store chains built with F
 - **Restocking Management**: Easy restocking operations with full audit trail
 - **Analytics Dashboard**: Stock trends and analytics for better decision making
 - **RESTful API**: Complete REST API for all operations
-- **Containerized Deployment**: Docker-based deployment for easy scaling
+- **Containerized Deployment**: Docker & Kubernetes deployment for production scaling
+- **High Availability**: Multiple replicas and health checks
 
 ## Technology Stack
 
 - **Backend**: Flask (Python)
 - **Database**: PostgreSQL
 - **Containerization**: Docker & Docker Compose
+- **Orchestration**: Kubernetes (Minikube/EKS)
 - **API**: RESTful endpoints with JSON responses
 
-## Prerequisites
+## Deployment Options
 
+### Option 1: Local Development (Docker Compose)
+### Option 2: Production-Ready (Kubernetes)
+
+---
+
+## 🚀 Quick Start - Docker Compose (Development)
+
+### Prerequisites
 - Docker and Docker Compose installed
 - Git (for cloning the repository)
 - curl or Postman (for testing API endpoints)
 
-## Quick Start
+### Steps
 
 1. **Clone the repository**
    ```bash
@@ -32,23 +42,134 @@ A comprehensive inventory management system for retail store chains built with F
    cd inventory-management-system
    ```
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env file with your preferred settings
-   ```
-
-3. **Build and start the application**
+2. **Build and start the application**
    ```bash
    docker-compose up --build
    ```
 
-4. **Access the application**
+3. **Access the application**
    - API: http://localhost:5000
    - pgAdmin (optional): http://localhost:8080
    - Health Check: http://localhost:5000/api/health
 
-## API Endpoints
+---
+
+## ⚙️ Production Deployment - Kubernetes
+
+### Prerequisites
+- **macOS**: 
+  ```bash
+  brew install minikube kubectl docker
+  ```
+- **Linux/Windows**: Install Docker Desktop, Minikube, kubectl
+- Docker Hub account (for storing images)
+
+### Step 1: Build and Push Docker Image
+
+```bash
+# Build the image
+docker buildx build -t your-username/smart-retail-app:latest .
+
+# Login to Docker Hub
+docker login
+
+# Push to Docker Hub
+docker push your-username/smart-retail-app:latest
+```
+
+### Step 2: Start Kubernetes Cluster
+
+```bash
+# Start Minikube
+minikube start
+
+# Enable Ingress
+minikube addons enable ingress
+
+# Verify cluster is running
+kubectl get nodes
+```
+
+### Step 3: Deploy to Kubernetes
+
+```bash
+# Navigate to k8s directory
+cd k8s
+
+# Deploy all components (order matters!)
+kubectl apply -f configs/configmap.yaml
+kubectl apply -f secrets/secrets.yaml
+kubectl apply -f deployments/postgres-deployment.yaml
+
+# Wait for PostgreSQL to be ready
+kubectl get pods -w
+# Wait until postgres pod shows "1/1 Running"
+
+# Deploy services and backend
+kubectl apply -f services/services.yaml
+kubectl apply -f deployments/flask-deployment.yaml
+kubectl apply -f ingress/ingress.yaml
+```
+
+### Step 4: Access the Application
+
+```bash
+# Start tunnel for external access
+minikube tunnel
+# Keep this terminal open!
+
+# In a new terminal, test the API
+curl http://localhost/api/health
+curl http://localhost/api/products
+```
+
+### Step 5: Create Test Data
+
+```bash
+# Create a product
+curl -X POST http://localhost/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Product",
+    "sku": "TEST-001",
+    "stock_level": 50,
+    "price": 29.99
+  }'
+
+# View analytics
+curl http://localhost/api/products/analytics
+```
+
+---
+
+## 📁 Project Structure
+
+```
+inventory-management-system/
+├── app.py                    # Flask application
+├── requirements.txt          # Python dependencies
+├── Dockerfile               # Container configuration
+├── docker-compose.yml       # Development setup
+├── init.sql                # Database initialization
+├── k8s/                    # Kubernetes manifests
+│   ├── configs/
+│   │   └── configmap.yaml
+│   ├── secrets/
+│   │   └── secrets.yaml
+│   ├── deployments/
+│   │   ├── flask-deployment.yaml
+│   │   └── postgres-deployment.yaml
+│   ├── services/
+│   │   └── services.yaml
+│   └── ingress/
+│       └── ingress.yaml
+├── test_api.py             # API testing script
+└── README.md               # This file
+```
+
+---
+
+## 🔧 API Endpoints
 
 ### Inventory Management
 
@@ -74,11 +195,13 @@ A comprehensive inventory management system for retail store chains built with F
 | GET | `/api/products/low-stock` | Get low stock products |
 | GET | `/api/products/analytics` | Get stock analytics |
 
-## API Usage Examples
+---
+
+## 📊 API Usage Examples
 
 ### Create a New Product
 ```bash
-curl -X POST http://localhost:5000/api/products \
+curl -X POST http://localhost/api/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Gaming Mouse",
@@ -92,7 +215,7 @@ curl -X POST http://localhost:5000/api/products \
 
 ### Restock a Product
 ```bash
-curl -X POST http://localhost:5000/api/products/1/restock \
+curl -X POST http://localhost/api/products/1/restock \
   -H "Content-Type: application/json" \
   -d '{
     "quantity": 25,
@@ -102,15 +225,17 @@ curl -X POST http://localhost:5000/api/products/1/restock \
 
 ### Get Low Stock Products
 ```bash
-curl http://localhost:5000/api/products/low-stock
+curl http://localhost/api/products/low-stock
 ```
 
 ### Get Analytics
 ```bash
-curl http://localhost:5000/api/products/analytics
+curl http://localhost/api/products/analytics
 ```
 
-## Database Schema
+---
+
+## 🗄️ Database Schema
 
 ### Products Table
 - `id`: Primary key
@@ -132,264 +257,245 @@ curl http://localhost:5000/api/products/analytics
 - `restocked_at`: Restock timestamp
 - `notes`: Optional notes
 
-## Development
+---
 
-### Running in Development Mode
+## 🔍 Troubleshooting
 
-1. **Start services**
+### Docker Compose Issues
+
+1. **Port already in use**
    ```bash
-   docker-compose up
+   docker-compose down
+   # Change ports in docker-compose.yml if needed
    ```
 
-2. **View logs**
+2. **Database connection failed**
    ```bash
-   docker-compose logs -f backend
+   docker-compose logs db
+   docker-compose restart db
    ```
 
-3. **Access database**
-   - Use pgAdmin at http://localhost:8080
-   - Login: admin@inventory.com / admin123
-   - Or connect directly: localhost:5432
+### Kubernetes Issues
 
-### Code Structure
+1. **Pods not starting**
+   ```bash
+   kubectl get pods
+   kubectl describe pod <pod-name>
+   kubectl logs <pod-name>
+   ```
 
-```
-inventory-management-system/
-├── app.py                 # Flask application
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Backend container
-├── docker-compose.yml    # Multi-container setup
-├── init.sql             # Database initialization
-├── .env.example         # Environment variables template
-└── README.md           # This file
-```
+2. **Cannot access application**
+   ```bash
+   # Check if tunnel is running
+   minikube tunnel
+   
+   # Check ingress status
+   kubectl get ingress
+   
+   # Alternative: use port-forward
+   kubectl port-forward svc/flask-service 5000:5000
+   # Then access: http://localhost:5000
+   ```
 
-### Making Changes
-
-1. **Backend changes**: Modify `app.py` and restart container
-2. **Database changes**: Update `init.sql` and recreate containers
-3. **Dependencies**: Update `requirements.txt` and rebuild image
-
-## Production Deployment
-
-### Security Considerations
-
-1. **Change default passwords** in `.env` file
-2. **Use HTTPS** in production
-3. **Set up proper firewall** rules
-4. **Enable authentication** for API endpoints
-5. **Use secrets management** for sensitive data
-
-### Scaling
-
-- **Horizontal scaling**: Add more backend containers
-- **Database scaling**: Use PostgreSQL replicas
-- **Load balancing**: Add nginx or similar load balancer
-- **Monitoring**: Add logging and monitoring tools
-
-### Environment Variables for Production
-
-```bash
-FLASK_ENV=production
-FLASK_DEBUG=false
-DATABASE_URL=postgresql://user:pass@prod-db:5432/inventory
-SECRET_KEY=your-super-secret-production-key
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Database connection failed**
-   - Check if PostgreSQL container is running
-   - Verify DATABASE_URL in environment variables
-
-2. **Port already in use**
-   - Change port mapping in docker-compose.yml
-   - Or stop conflicting services
-
-3. **Container build fails**
-   - Ensure Docker has enough resources
-   - Check Dockerfile syntax
+3. **Image pull errors**
+   ```bash
+   # Make sure image exists on Docker Hub
+   docker pull your-username/smart-retail-app:latest
+   
+   # Update deployment with correct image name
+   kubectl set image deployment/flask-deployment flask-backend=your-username/smart-retail-app:latest
+   ```
 
 ### Useful Commands
 
+#### Docker Compose
 ```bash
 # View running containers
 docker-compose ps
 
-# Stop all services
-docker-compose down
-
-# Rebuild containers
-docker-compose up --build
-
-# View backend logs
+# View logs
 docker-compose logs -f backend
 
-# View database logs
-docker-compose logs -f db
-
-# Execute commands in running container
-docker-compose exec backend bash
-docker-compose exec db psql -U inventory_user -d inventory_db
-
-# Clean up (remove containers and volumes)
+# Clean restart
 docker-compose down -v
-
-# Reset database (remove volume and restart)
-docker-compose down -v db
-docker-compose up db
+docker-compose up --build
 ```
 
-## Testing
+#### Kubernetes
+```bash
+# View all resources
+kubectl get all
+
+# View pod details
+kubectl describe pod <pod-name>
+
+# View logs
+kubectl logs -f deployment/flask-deployment
+
+# Delete all resources
+kubectl delete -f k8s/
+
+# Reset Minikube
+minikube delete
+minikube start
+```
+
+---
+
+## 🧪 Testing
+
+### Automated Testing
+```bash
+# Run the included test script
+python3 test_api.py
+```
 
 ### Manual Testing
-
-Test all endpoints to ensure functionality:
-
 ```bash
 # Health check
-curl http://localhost:5000/api/health
+curl http://localhost/api/health
 
-# Get all products
-curl http://localhost:5000/api/products
-
-# Create product
-curl -X POST http://localhost:5000/api/products \
+# Create and test products
+curl -X POST http://localhost/api/products \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Product", "sku": "TEST001", "stock_level": 100}'
 
-# Update product
-curl -X PUT http://localhost:5000/api/products/1 \
-  -H "Content-Type: application/json" \
-  -d '{"stock_level": 75}'
-
-# Restock product
-curl -X POST http://localhost:5000/api/products/1/restock \
-  -H "Content-Type: application/json" \
-  -d '{"quantity": 25}'
-
-# Check low stock
-curl http://localhost:5000/api/products/low-stock
-
-# Get analytics
-curl http://localhost:5000/api/products/analytics
+# Check analytics
+curl http://localhost/api/products/analytics
 ```
 
-## Monitoring and Maintenance
+---
+
+## 🚀 For Your Project Partner
+
+### Quick Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd inventory-management-system
+   ```
+
+2. **Choose deployment method:**
+
+   **Option A: Simple Docker Setup**
+   ```bash
+   docker-compose up --build
+   # Access: http://localhost:5000
+   ```
+
+   **Option B: Full Kubernetes Setup**
+   ```bash
+   # Install prerequisites (macOS)
+   brew install minikube kubectl docker
+   
+   # Start Kubernetes
+   minikube start
+   minikube addons enable ingress
+   
+   # Deploy application
+   cd k8s
+   kubectl apply -f configs/
+   kubectl apply -f secrets/
+   kubectl apply -f deployments/postgres-deployment.yaml
+   # Wait for postgres...
+   kubectl apply -f services/
+   kubectl apply -f deployments/flask-deployment.yaml
+   kubectl apply -f ingress/
+   
+   # Access application
+   minikube tunnel  # Keep running
+   # Test: curl http://localhost/api/health
+   ```
+
+3. **Test the API**
+   ```bash
+   python3 test_api.py
+   ```
+
+---
+
+## 📝 Environment Variables
+
+### Docker Compose
+Variables are set in `docker-compose.yml` - no additional setup needed.
+
+### Kubernetes
+Configured via ConfigMaps and Secrets:
+- **ConfigMap**: `inventory-config` (non-sensitive settings)
+- **Secret**: `inventory-secrets` (passwords)
+
+---
+
+## 🔐 Security Considerations
+
+### Development
+- Default passwords are used (fine for development)
+- No authentication required
+- All traffic is HTTP
+
+### Production Recommendations
+1. **Change default passwords** in secrets
+2. **Enable HTTPS** with proper certificates
+3. **Add API authentication** (JWT tokens)
+4. **Set up proper firewall** rules
+5. **Use managed databases** (AWS RDS, Google Cloud SQL)
+6. **Implement monitoring** (Prometheus, Grafana)
+
+---
+
+## 📈 Monitoring and Maintenance
 
 ### Health Checks
-
-The application includes built-in health checks:
-- Backend: `/api/health`
-- Database: PostgreSQL health check in docker-compose
+- **Backend**: `/api/health`
+- **Database**: Built-in PostgreSQL health checks
+- **Kubernetes**: Liveness and readiness probes
 
 ### Backup Strategy
-
 ```bash
-# Backup database
+# Docker Compose
 docker-compose exec db pg_dump -U inventory_user inventory_db > backup.sql
 
-# Restore database
-docker-compose exec -T db psql -U inventory_user inventory_db < backup.sql
+# Kubernetes
+kubectl exec deployment/postgres-deployment -- pg_dump -U inventory_user inventory_db > backup.sql
 ```
 
-### Log Management
+---
 
-Logs are available through Docker Compose:
-```bash
-# View all logs
-docker-compose logs
+## 🎯 Next Steps (Optional Enhancements)
 
-# Follow specific service logs
-docker-compose logs -f backend
-docker-compose logs -f db
-```
+1. **Monitoring**: Add Prometheus + Grafana
+2. **CI/CD**: GitHub Actions pipeline
+3. **Frontend**: React dashboard
+4. **Authentication**: JWT-based API security
+5. **Cloud Deployment**: AWS EKS, Google GKE
+6. **Load Testing**: Stress testing with k6
 
-## API Response Examples
+---
 
-### Successful Product Creation
-```json
-{
-  "success": true,
-  "message": "Product created successfully",
-  "product": {
-    "id": 1,
-    "name": "Gaming Mouse",
-    "sku": "GM001",
-    "description": "High-performance gaming mouse",
-    "stock_level": 50,
-    "min_stock_threshold": 10,
-    "price": 79.99,
-    "created_at": "2025-06-03T10:30:00",
-    "updated_at": "2025-06-03T10:30:00",
-    "is_low_stock": false
-  }
-}
-```
-
-### Low Stock Alert Response
-```json
-{
-  "success": true,
-  "low_stock_products": [
-    {
-      "id": 3,
-      "name": "Office Chair",
-      "sku": "CHR001",
-      "stock_level": 2,
-      "min_stock_threshold": 3,
-      "is_low_stock": true
-    }
-  ],
-  "count": 1
-}
-```
-
-### Analytics Response
-```json
-{
-  "success": true,
-  "analytics": {
-    "total_products": 10,
-    "low_stock_count": 2,
-    "out_of_stock_count": 0,
-    "total_stock_value": 25847.50,
-    "recent_restocks_30_days": 15,
-    "low_stock_percentage": 20.0,
-    "top_stock_products": [
-      {
-        "name": "USB-C Cable",
-        "sku": "CBL001",
-        "stock_level": 200
-      }
-    ]
-  }
-}
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-feature`)
 3. Make your changes
-4. Test thoroughly
+4. Test thoroughly (both Docker and Kubernetes)
 5. Commit your changes (`git commit -am 'Add new feature'`)
 6. Push to the branch (`git push origin feature/new-feature`)
 7. Create a Pull Request
 
-## License
+---
+
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
-
-For support and questions:
-- Create an issue in the GitHub repository
-- Check the troubleshooting section above
-- Review Docker and Flask documentation
-
 ---
 
-**Note**: This is a development setup. For production deployment, additional security measures, monitoring, and performance optimizations should be implemented.
+## 🆘 Support
+
+For questions and support:
+- Create an issue in the GitHub repository
+- Check the troubleshooting section above
+- Review Docker and Kubernetes documentation
+
+**Happy coding! 🎉**

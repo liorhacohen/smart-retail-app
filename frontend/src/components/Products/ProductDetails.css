@@ -1,0 +1,486 @@
+/* Product Details Container */
+.product-details {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  
+  /* Loading State */
+  .product-details-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    gap: 1rem;
+  }
+  
+  .loading-spinner {
+    color: #667eea;
+  }
+  
+  /* Not Found State */
+  .product-not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    gap: 1rem;
+    text-align: center;
+    color: #6b7280;
+  }
+  
+  .product-not-found h2 {
+    color: #374151;
+    margin: 0;
+  }
+  
+  .product-not-found p {
+    margin: 0;
+  }
+  
+  /* Header */
+  .product-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .back-button:hover {
+    color: #5a67d8;
+  }
+  
+  .product-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+  
+  .product-icon-large {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .product-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.2;
+  }
+  
+  .product-sku {
+    color: #6b7280;
+    margin: 0;
+    font-family: monospace;
+    font-size: 1rem;
+  }
+  
+  .product-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  /* Info Grid */
+  .product-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .info-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  
+  .info-card-header {
+    background: #f9fafb;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .info-card-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+  
+  .info-card-content {
+    padding: 1.5rem;
+  }
+  
+  /* Info Rows */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .info-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .info-label {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  .info-value {
+    font-weight: 500;
+    color: #111827;
+    text-align: right;
+  }
+  
+  /* Badges */
+  .category-badge,
+  .sku-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f0f9ff;
+    color: #0369a1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .sku-badge {
+    background: #f3f4f6;
+    color: #374151;
+    font-family: monospace;
+  }
+  
+  /* Stock Overview */
+  .stock-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .stock-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+  }
+  
+  .stock-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+  }
+  
+  .stock-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  .stock-status-large {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  
+  .status-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .status-warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  
+  .status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  /* Price Display */
+  .price-display {
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  
+  .price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #16a34a;
+    line-height: 1;
+    display: block;
+  }
+  
+  .price-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .price-calculations {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+  }
+  
+  .calc-value {
+    font-weight: 600;
+    color: #111827;
+  }
+  
+  /* Restock History Section */
+  .restock-history-section {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  
+  .section-header {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+  
+  .history-count {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  /* Restock Table */
+  .restock-table-container {
+    overflow-x: auto;
+  }
+  
+  .restock-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .restock-table th {
+    background: #f9fafb;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .restock-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.875rem;
+  }
+  
+  .restock-table tbody tr:hover {
+    background: #f9fafb;
+  }
+  
+  .restock-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .quantity-added {
+    background: #dcfce7;
+    color: #166534;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 0.8125rem;
+  }
+  
+  /* Empty History */
+  .empty-history {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: #6b7280;
+  }
+  
+  .empty-history h3 {
+    font-size: 1.125rem;
+    color: #374151;
+    margin: 1rem 0 0.5rem 0;
+  }
+  
+  .empty-history p {
+    margin: 0 0 1.5rem 0;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .product-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+  
+    .product-title-section {
+      order: 1;
+    }
+  
+    .back-button {
+      order: 0;
+      align-self: flex-start;
+    }
+  
+    .product-actions {
+      order: 2;
+      justify-content: stretch;
+    }
+  
+    .product-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  
+    .product-info-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  
+    .info-card-content {
+      padding: 1rem;
+    }
+  
+    .product-title {
+      font-size: 1.5rem;
+    }
+  
+    .stock-overview {
+      flex-direction: row;
+      justify-content: space-around;
+    }
+  
+    .stock-metric {
+      padding: 0.75rem;
+      flex: 1;
+    }
+  
+    .stock-number {
+      font-size: 1.5rem;
+    }
+  
+    .price-amount {
+      font-size: 2rem;
+    }
+  
+    .section-header {
+      padding: 1rem;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+  
+    .restock-table th,
+    .restock-table td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .product-title {
+      font-size: 1.25rem;
+    }
+  
+    .product-icon-large {
+      padding: 0.75rem;
+    }
+  
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+  
+    .info-value {
+      text-align: left;
+    }
+  
+    .stock-overview {
+      flex-direction: column;
+    }
+  
+    .price-amount {
+      font-size: 1.75rem;
+    }
+  
+    .empty-history {
+      padding: 2rem 1rem;
+    }
+  }
