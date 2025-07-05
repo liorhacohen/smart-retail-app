@@ -1,15 +1,17 @@
-Requirements:
+# Python dependencies for Flask Inventory Management System
 
----- Programs on Windows ---
-Python 3.12 - The programming language and runtime for your code.
-PostgreSQL - The relational database server.
-pgAdmin - A graphical interface for managing PostgreSQL databases.
-Git - Version control system.
-Postman - Tool for testing and sending API requests.
-Visual Studio Code (VS Code) - Code editor
+# Flask framework and extensions
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
 
-------- Python Packages Installed (inside your venv)
-flask
-flask_sqlalchemy
-psycopg2-binary
-requests (for testing)
+# Database drivers
+psycopg2-binary==2.9.7
+
+# WSGI server for production
+gunicorn==21.2.0
+
+# Environment management
+python-dotenv==1.0.0
+
+# CORS support (if needed for frontend)
+Flask-CORS==4.0.0

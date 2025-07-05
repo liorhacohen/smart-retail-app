@@ -1,0 +1,114 @@
+# Docker Compose configuration for Inventory Management System
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: inventory_db
+    restart: unless-stopped
+    
+    # Environment variables for PostgreSQL
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: inventory_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    
+    # Mount volume for data persistence
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    # Internal port for database
+    ports:
+      - "5432:5432"
+    
+    # Health check for database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventory_user -d inventory_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    # Internal network
+    networks:
+      - inventory_network
+
+  # Flask Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inventory_backend
+    restart: unless-stopped
+    
+    # Environment variables for Flask app
+    environment:
+      DATABASE_URL: postgresql://inventory_user:inventory_pass@db:5432/inventory_db
+      FLASK_ENV: development
+      FLASK_DEBUG: "true"
+    
+    # Port mapping (host:container)
+    ports:
+      - "5000:5000"
+    
+    # Wait for database to be ready
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    # Mount volume for development (optional - for code changes without rebuild)
+    volumes:
+      - .:/app
+    
+    # Internal network
+    networks:
+      - inventory_network
+    
+    # Health check for backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: pgAdmin for database management (development only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: inventory_pgadmin
+    restart: unless-stopped
+    
+    # Environment variables for pgAdmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@inventory.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    
+    # Port mapping
+    ports:
+      - "8080:80"
+    
+    # Wait for database
+    depends_on:
+      - db
+    
+    # Internal network
+    networks:
+      - inventory_network
+    
+    # Volume for pgAdmin data
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+# Define volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# Define internal network
+networks:
+  inventory_network:
+    driver: bridge
