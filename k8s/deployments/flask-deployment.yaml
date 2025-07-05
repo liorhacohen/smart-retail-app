@@ -1,0 +1,119 @@
+# Flask Backend Deployment for Inventory Management System
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+  labels:
+    app: inventory-management
+    component: backend
+spec:
+  replicas: 2  # Run 2 instances for high availability
+  selector:
+    matchLabels:
+      app: inventory-management
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: inventory-management
+        component: backend
+    spec:
+      containers:
+      - name: flask-backend
+        image: litalhay/smart-retail-app:latest
+        ports:
+        - containerPort: 5000
+        
+        # Environment variables
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: inventory-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: inventory-secrets
+              key: DB_PASSWORD
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: FLASK_ENV
+        - name: FLASK_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: FLASK_DEBUG
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      
+      # Wait for PostgreSQL to be ready
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command: 
+        - sh
+        - -c
+        - |
+          until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: inventory-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: inventory-secrets
+              key: DB_USER

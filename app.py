@@ -9,12 +9,15 @@ from sqlalchemy import func
 app = Flask(__name__)
 
 # Database configuration
-# Use environment variables for database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'postgresql://inventory_user:inventory_pass@db:5432/inventory_db'
-)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Build DATABASE_URL from individual environment variables
+db_user = os.getenv('DB_USER', 'inventory_user')
+db_password = os.getenv('DB_PASSWORD', 'inventory_pass')
+db_host = os.getenv('DB_HOST', 'db')
+db_port = os.getenv('DB_PORT', '5432')
+db_name = os.getenv('DB_NAME', 'inventory_db')
+
+database_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 # Initialize database
 db = SQLAlchemy(app)

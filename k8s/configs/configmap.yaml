@@ -1,0 +1,20 @@
+# ConfigMap for Inventory Management System
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-config
+  labels:
+    app: inventory-management
+data:
+  # Flask configuration
+  FLASK_ENV: "production"
+  FLASK_DEBUG: "false"
+  
+  # Database configuration (host and database name - no passwords here!)
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "inventory_db"
+  
+  # PostgreSQL configuration
+  POSTGRES_DB: "inventory_db"
+  POSTGRES_INITDB_ARGS: "--encoding=UTF-8"

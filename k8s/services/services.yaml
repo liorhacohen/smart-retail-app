@@ -1,0 +1,60 @@
+# Services for Inventory Management System
+
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  labels:
+    app: inventory-management
+    component: database
+spec:
+  selector:
+    app: inventory-management
+    component: database
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+  type: ClusterIP  # Internal service only
+
+---
+# Flask Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+  labels:
+    app: inventory-management
+    component: backend
+spec:
+  selector:
+    app: inventory-management
+    component: backend
+  ports:
+  - name: flask
+    port: 5000
+    targetPort: 5000
+    protocol: TCP
+  type: ClusterIP  # Internal service only
+
+---
+# LoadBalancer Service for external access (alternative to Ingress)
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-loadbalancer
+  labels:
+    app: inventory-management
+    component: backend
+spec:
+  selector:
+    app: inventory-management
+    component: backend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5000
+    protocol: TCP
+  type: LoadBalancer  # External access
