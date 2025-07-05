@@ -1,12 +1,16 @@
 # Flask Backend for Inventory Management System
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from sqlalchemy import func
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Database configuration
 # Build DATABASE_URL from individual environment variables
@@ -299,22 +303,34 @@ def get_restock_history():
 
 @app.route('/api/products/low-stock', methods=['GET'])
 def get_low_stock_products():
-    """Get products with stock below threshold"""
     try:
-        # Query products where stock level is at or below minimum threshold
-        low_stock_products = Product.query.filter(
+        low_stock_products = db.session.query(Product).filter(
             Product.stock_level <= Product.min_stock_threshold
         ).all()
         
+        products_data = []
+        for product in low_stock_products:
+            products_data.append({
+                'id': product.id,
+                'name': product.name,
+                'sku': product.sku,
+                'quantity': product.stock_level,
+                'min_stock_level': product.min_stock_threshold,
+                'price': product.price
+            })
+        
         return jsonify({
             'success': True,
-            'low_stock_products': [product.to_dict() for product in low_stock_products],
-            'count': len(low_stock_products)
+            'products': products_data
         })
         
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
+    
 @app.route('/api/products/analytics', methods=['GET'])
 def get_stock_analytics():
     """Get stock analytics and trends"""
@@ -373,6 +389,47 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.route('/api/products/analytics', methods=['GET'])
+def get_analytics():
+    try:
+        # חישוב סך המוצרים
+        total_products = db.session.query(Product).count()
+        
+        # חישוב סך הערך
+        products = db.session.query(Product).all()
+        total_value = sum(product.price * product.stock_level for product in products)
+        
+        # מוצרים במלאי נמוך
+        low_stock_products = db.session.query(Product).filter(
+            Product.stock_level <= Product.min_stock_threshold
+        ).count()
+        
+        # סך התוספות מלאי השבוע האחרון
+        from datetime import datetime, timedelta
+        week_ago = datetime.now() - timedelta(days=7)
+        recent_restocks = db.session.query(RestockLog).filter(
+            RestockLog.restocked_at >= week_ago
+        ).count()
+        
+        analytics_data = {
+            'total_products': total_products,
+            'total_value': round(total_value, 2),
+            'low_stock_count': low_stock_products,
+            'recent_restocks': recent_restocks
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': analytics_data
+        })
+        
+    except Exception as e:
+        print(f"Analytics error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     # Run the Flask application
