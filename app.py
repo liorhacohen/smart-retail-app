@@ -2,11 +2,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from datetime import datetime
 import os
+import logging
 from dotenv import load_dotenv
 load_dotenv()
 from sqlalchemy import func
+import re
 
 # Prometheus monitoring imports
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
@@ -15,6 +19,43 @@ import time
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Configure rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Input validation functions
+def validate_sku(sku):
+    """Validate SKU format (alphanumeric, 3-20 characters)"""
+    if not sku or not isinstance(sku, str):
+        return False
+    return bool(re.match(r'^[A-Za-z0-9\-_]{3,20}$', sku))
+
+def validate_price(price):
+    """Validate price (positive number)"""
+    try:
+        price_float = float(price)
+        return price_float >= 0
+    except (ValueError, TypeError):
+        return False
+
+def validate_stock_level(stock_level):
+    """Validate stock level (non-negative integer)"""
+    try:
+        stock_int = int(stock_level)
+        return stock_int >= 0
+    except (ValueError, TypeError):
+        return False
 
 # Prometheus metrics setup
 # Request counters
@@ -37,6 +78,12 @@ db_name = os.getenv('DB_NAME', 'inventory_db')
 
 database_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,
+    'pool_recycle': 3600,
+    'pool_pre_ping': True,
+    'max_overflow': 20
+}
 
 # Initialize database
 db = SQLAlchemy(app)
@@ -50,14 +97,14 @@ class Product(db.Model):
     __tablename__ = 'products'
     
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    sku = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False, index=True)
+    sku = db.Column(db.String(100), unique=True, nullable=False, index=True)
     description = db.Column(db.Text)
-    stock_level = db.Column(db.Integer, default=0)
+    stock_level = db.Column(db.Integer, default=0, index=True)
     min_stock_threshold = db.Column(db.Integer, default=10)  # Low stock alert threshold
-    price = db.Column(db.Float, default=0.0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    price = db.Column(db.Float, default=0.0, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
     
     def to_dict(self):
         """Convert product object to dictionary"""
@@ -111,6 +158,16 @@ def create_tables():
     if not _database_initialized:
         db.create_all()
         _database_initialized = True
+
+# Security headers middleware
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
 
 # Monitoring middleware
 @app.before_request
@@ -179,6 +236,7 @@ def get_product(product_id):
         return jsonify({'success': False, 'error': str(e)}), 404
 
 @app.route('/api/products', methods=['POST'])
+@limiter.limit("10 per minute")
 def create_product():
     """Add a new product to inventory"""
     try:
@@ -188,6 +246,18 @@ def create_product():
         if not data or not data.get('name') or not data.get('sku'):
             return jsonify({'success': False, 'error': 'Name and SKU are required'}), 400
         
+        # Validate SKU format
+        if not validate_sku(data['sku']):
+            return jsonify({'success': False, 'error': 'Invalid SKU format. Use 3-20 alphanumeric characters, hyphens, or underscores'}), 400
+        
+        # Validate price if provided
+        if 'price' in data and not validate_price(data['price']):
+            return jsonify({'success': False, 'error': 'Price must be a positive number'}), 400
+        
+        # Validate stock level if provided
+        if 'stock_level' in data and not validate_stock_level(data['stock_level']):
+            return jsonify({'success': False, 'error': 'Stock level must be a non-negative integer'}), 400
+        
         # Check if SKU already exists
         existing_product = Product.query.filter_by(sku=data['sku']).first()
         if existing_product:
@@ -195,16 +265,18 @@ def create_product():
         
         # Create new product
         product = Product(
-            name=data['name'],
+            name=data['name'].strip()[:255],  # Limit name length
             sku=data['sku'],
-            description=data.get('description', ''),
-            stock_level=data.get('stock_level', 0),
-            min_stock_threshold=data.get('min_stock_threshold', 10),
-            price=data.get('price', 0.0)
+            description=data.get('description', '')[:1000],  # Limit description length
+            stock_level=int(data.get('stock_level', 0)),
+            min_stock_threshold=int(data.get('min_stock_threshold', 10)),
+            price=float(data.get('price', 0.0))
         )
         
         db.session.add(product)
         db.session.commit()
+        
+        logger.info(f"Product created: {product.sku} - {product.name}")
         
         # Update metrics
         PRODUCT_OPERATIONS.labels(operation_type='create').inc()
@@ -222,7 +294,8 @@ def create_product():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"Error creating product: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @app.route('/api/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
@@ -234,20 +307,32 @@ def update_product(product_id):
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
         
-        # Update product fields
+        # Update product fields with validation
         if 'name' in data:
-            product.name = data['name']
+            product.name = data['name'].strip()[:255]  # Limit name length
+        
         if 'description' in data:
-            product.description = data['description']
+            product.description = data['description'][:1000]  # Limit description length
+        
         if 'stock_level' in data:
-            product.stock_level = data['stock_level']
+            if not validate_stock_level(data['stock_level']):
+                return jsonify({'success': False, 'error': 'Stock level must be a non-negative integer'}), 400
+            product.stock_level = int(data['stock_level'])
+        
         if 'min_stock_threshold' in data:
-            product.min_stock_threshold = data['min_stock_threshold']
+            if not validate_stock_level(data['min_stock_threshold']):
+                return jsonify({'success': False, 'error': 'Min stock threshold must be a non-negative integer'}), 400
+            product.min_stock_threshold = int(data['min_stock_threshold'])
+        
         if 'price' in data:
-            product.price = data['price']
+            if not validate_price(data['price']):
+                return jsonify({'success': False, 'error': 'Price must be a positive number'}), 400
+            product.price = float(data['price'])
         
         product.updated_at = datetime.utcnow()
         db.session.commit()
+        
+        logger.info(f"Product updated: {product.sku} - {product.name}")
         
         # Update metrics
         PRODUCT_OPERATIONS.labels(operation_type='update').inc()
@@ -272,7 +357,8 @@ def update_product(product_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"Error updating product {product_id}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @app.route('/api/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
@@ -307,6 +393,7 @@ def delete_product(product_id):
 # Restocking Operations
 
 @app.route('/api/products/<int:product_id>/restock', methods=['POST'])
+@limiter.limit("20 per minute")
 def restock_product(product_id):
     """Restock a specific product"""
     try:
@@ -316,9 +403,11 @@ def restock_product(product_id):
         if not data or 'quantity' not in data:
             return jsonify({'success': False, 'error': 'Quantity is required'}), 400
         
-        quantity = data['quantity']
-        if quantity <= 0:
-            return jsonify({'success': False, 'error': 'Quantity must be positive'}), 400
+        # Validate quantity
+        if not validate_stock_level(data['quantity']) or int(data['quantity']) <= 0:
+            return jsonify({'success': False, 'error': 'Quantity must be a positive integer'}), 400
+        
+        quantity = int(data['quantity'])
         
         # Store previous stock level
         previous_stock = product.stock_level
@@ -333,11 +422,13 @@ def restock_product(product_id):
             quantity_added=quantity,
             previous_stock=previous_stock,
             new_stock=product.stock_level,
-            notes=data.get('notes', '')
+            notes=data.get('notes', '')[:500]  # Limit notes length
         )
         
         db.session.add(restock_log)
         db.session.commit()
+        
+        logger.info(f"Product restocked: {product.sku} - Added {quantity} units")
         
         # Update metrics
         RESTOCK_OPERATIONS.labels(
@@ -359,7 +450,8 @@ def restock_product(product_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"Error restocking product {product_id}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @app.route('/api/restocks', methods=['GET'])
 def get_restock_history():
@@ -479,46 +571,7 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-@app.route('/api/products/analytics', methods=['GET'])
-def get_analytics():
-    try:
-        # חישוב סך המוצרים
-        total_products = db.session.query(Product).count()
-        
-        # חישוב סך הערך
-        products = db.session.query(Product).all()
-        total_value = sum(product.price * product.stock_level for product in products)
-        
-        # מוצרים במלאי נמוך
-        low_stock_products = db.session.query(Product).filter(
-            Product.stock_level <= Product.min_stock_threshold
-        ).count()
-        
-        # סך התוספות מלאי השבוע האחרון
-        from datetime import datetime, timedelta
-        week_ago = datetime.now() - timedelta(days=7)
-        recent_restocks = db.session.query(RestockLog).filter(
-            RestockLog.restocked_at >= week_ago
-        ).count()
-        
-        analytics_data = {
-            'total_products': total_products,
-            'total_value': round(total_value, 2),
-            'low_stock_count': low_stock_products,
-            'recent_restocks': recent_restocks
-        }
-        
-        return jsonify({
-            'success': True,
-            'data': analytics_data
-        })
-        
-    except Exception as e:
-        print(f"Analytics error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+
 
 if __name__ == '__main__':
     # Run the Flask application

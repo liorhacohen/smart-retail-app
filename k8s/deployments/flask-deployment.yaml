@@ -91,6 +91,22 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Gunicorn needs to write temp files
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts for temporary files
+        volumeMounts:
+        - name: temp-volume
+          mountPath: /tmp
+          readOnly: false
       
       # Wait for PostgreSQL to be ready
       initContainers:
@@ -121,3 +137,8 @@ spec:
             secretKeyRef:
               name: inventory-secrets
               key: DB_USER
+
+      # Volumes for temporary files
+      volumes:
+      - name: temp-volume
+        emptyDir: {}

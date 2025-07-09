@@ -18,3 +18,6 @@ Flask-CORS==4.0.0
 
 # Monitoring and metrics
 prometheus-client==0.17.1
+
+# Security and rate limiting
+Flask-Limiter==3.5.0
