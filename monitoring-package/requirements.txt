@@ -1,4 +1,4 @@
-# Python dependencies for Flask Inventory Management System
+# Python dependencies for Flask Inventory Management System with Monitoring
 
 # Flask framework and extensions
 Flask==2.3.3
@@ -13,8 +13,8 @@ gunicorn==21.2.0
 # Environment management
 python-dotenv==1.0.0
 
-# CORS support (if needed for frontend)
+# CORS support
 Flask-CORS==4.0.0
 
-# Monitoring and metrics
+# Prometheus monitoring
 prometheus-client==0.17.1
