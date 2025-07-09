@@ -8,9 +8,24 @@ from dotenv import load_dotenv
 load_dotenv()
 from sqlalchemy import func
 
+# Prometheus monitoring imports
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+import time
+
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Prometheus metrics setup
+# Request counters
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency', ['method', 'endpoint'])
+
+# Business metrics
+STOCK_LEVEL_GAUGE = Gauge('product_stock_level', 'Current stock level for products', ['product_id', 'product_name', 'sku'])
+LOW_STOCK_ALERTS = Counter('low_stock_alerts_total', 'Total low stock alerts', ['product_id', 'product_name'])
+RESTOCK_OPERATIONS = Counter('restock_operations_total', 'Total restock operations', ['product_id', 'product_name'])
+PRODUCT_OPERATIONS = Counter('product_operations_total', 'Total product operations', ['operation_type'])
 
 # Database configuration
 # Build DATABASE_URL from individual environment variables
@@ -97,6 +112,28 @@ def create_tables():
         db.create_all()
         _database_initialized = True
 
+# Monitoring middleware
+@app.before_request
+def before_request():
+    """Start timer for request latency measurement"""
+    request.start_time = time.time()
+
+@app.after_request
+def after_request(response):
+    """Record metrics after each request"""
+    if hasattr(request, 'start_time'):
+        latency = time.time() - request.start_time
+        REQUEST_LATENCY.labels(method=request.method, endpoint=request.endpoint).observe(latency)
+    
+    REQUEST_COUNT.labels(method=request.method, endpoint=request.endpoint, status=response.status_code).inc()
+    return response
+
+# Prometheus metrics endpoint
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    """Prometheus metrics endpoint"""
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 # API Endpoints
 
 # Health check endpoint
@@ -112,6 +149,15 @@ def get_all_products():
     """Get all products with their stock levels"""
     try:
         products = Product.query.all()
+        
+        # Update stock level gauges for all products
+        for product in products:
+            STOCK_LEVEL_GAUGE.labels(
+                product_id=str(product.id), 
+                product_name=product.name, 
+                sku=product.sku
+            ).set(product.stock_level)
+        
         return jsonify({
             'success': True,
             'products': [product.to_dict() for product in products],
@@ -160,6 +206,14 @@ def create_product():
         db.session.add(product)
         db.session.commit()
         
+        # Update metrics
+        PRODUCT_OPERATIONS.labels(operation_type='create').inc()
+        STOCK_LEVEL_GAUGE.labels(
+            product_id=str(product.id), 
+            product_name=product.name, 
+            sku=product.sku
+        ).set(product.stock_level)
+        
         return jsonify({
             'success': True,
             'message': 'Product created successfully',
@@ -195,6 +249,21 @@ def update_product(product_id):
         product.updated_at = datetime.utcnow()
         db.session.commit()
         
+        # Update metrics
+        PRODUCT_OPERATIONS.labels(operation_type='update').inc()
+        STOCK_LEVEL_GAUGE.labels(
+            product_id=str(product.id), 
+            product_name=product.name, 
+            sku=product.sku
+        ).set(product.stock_level)
+        
+        # Check for low stock alert
+        if product.stock_level <= product.min_stock_threshold:
+            LOW_STOCK_ALERTS.labels(
+                product_id=str(product.id), 
+                product_name=product.name
+            ).inc()
+        
         return jsonify({
             'success': True,
             'message': 'Product updated successfully',
@@ -216,6 +285,15 @@ def delete_product(product_id):
         
         db.session.delete(product)
         db.session.commit()
+        
+        # Update metrics
+        PRODUCT_OPERATIONS.labels(operation_type='delete').inc()
+        # Remove stock level gauge for deleted product
+        STOCK_LEVEL_GAUGE.labels(
+            product_id=str(product.id), 
+            product_name=product.name, 
+            sku=product.sku
+        ).remove()
         
         return jsonify({
             'success': True,
@@ -260,6 +338,17 @@ def restock_product(product_id):
         
         db.session.add(restock_log)
         db.session.commit()
+        
+        # Update metrics
+        RESTOCK_OPERATIONS.labels(
+            product_id=str(product.id), 
+            product_name=product.name
+        ).inc()
+        STOCK_LEVEL_GAUGE.labels(
+            product_id=str(product.id), 
+            product_name=product.name, 
+            sku=product.sku
+        ).set(product.stock_level)
         
         return jsonify({
             'success': True,

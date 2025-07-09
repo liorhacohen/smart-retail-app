@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    app: monitoring
+    component: grafana
+data:
+  inventory-dashboard.json: |
+    {
+      "id": null,
+      "title": "Inventory Management Dashboard",
+      "tags": ["inventory", "api"],
+      "style": "dark",
+      "timezone": "browser",
+      "panels": [
+          {
+            "id": 1,
+            "title": "API Response Times",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+                "legendFormat": "95th percentile - {{endpoint}}"
+              },
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+                "legendFormat": "50th percentile - {{endpoint}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "yAxes": [
+              {"label": "Response Time (seconds)", "min": 0}
+            ]
+          },
+          {
+            "id": 2,
+            "title": "HTTP Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (endpoint)",
+                "legendFormat": "{{endpoint}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "yAxes": [
+              {"label": "Requests per second", "min": 0}
+            ]
+          },
+          {
+            "id": 3,
+            "title": "HTTP Status Codes",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (status)",
+                "legendFormat": "Status {{status}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "yAxes": [
+              {"label": "Requests per second", "min": 0}
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Product Stock Levels",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "product_stock_level",
+                "legendFormat": "{{product_name}} ({{sku}})"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "yAxes": [
+              {"label": "Stock Level", "min": 0}
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Low Stock Alerts",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(low_stock_alerts_total[1h]))",
+                "legendFormat": "Low Stock Alerts (1h)"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 16},
+            "fieldConfig": {
+              "defaults": {
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 1},
+                    {"color": "red", "value": 5}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 6,
+            "title": "Restock Operations",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(restock_operations_total[1h]))",
+                "legendFormat": "Restock Operations (1h)"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 16},
+            "fieldConfig": {
+              "defaults": {
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "blue", "value": 1}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 7,
+            "title": "Product Operations",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(product_operations_total[1h])) by (operation_type)",
+                "legendFormat": "{{operation_type}}"
+              }
+            ],
+            "gridPos": {"h": 4, "w": 12, "x": 12, "y": 16}
+          },
+          {
+            "id": 8,
+            "title": "Container CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{container=~\"flask-backend.*\"}[5m]) * 100",
+                "legendFormat": "CPU % - {{pod}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+            "yAxes": [
+              {"label": "CPU Usage %", "min": 0, "max": 100}
+            ]
+          },
+          {
+            "id": 9,
+            "title": "Container Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{container=~\"flask-backend.*\"} / 1024 / 1024",
+                "legendFormat": "Memory MB - {{pod}}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+            "yAxes": [
+              {"label": "Memory Usage (MB)", "min": 0}
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+  dashboard-provider.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 10
+      allowUiUpdates: true
+      options:
+        path: /etc/grafana/provisioning/dashboards 
