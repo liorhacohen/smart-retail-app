@@ -374,12 +374,12 @@ def delete_product(product_id):
         
         # Update metrics
         PRODUCT_OPERATIONS.labels(operation_type='delete').inc()
-        # Remove stock level gauge for deleted product
+        # Set stock level gauge to 0 for deleted product (Prometheus doesn't support removal)
         STOCK_LEVEL_GAUGE.labels(
             product_id=str(product.id), 
             product_name=product.name, 
             sku=product.sku
-        ).remove()
+        ).set(0)
         
         return jsonify({
             'success': True,

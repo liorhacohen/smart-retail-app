@@ -1,86 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
 import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Edit, 
-  Trash2, 
   Package, 
+  Plus, 
+  Search, 
+  Eye,
+  Edit,
+  Trash2,
   AlertTriangle,
-  RefreshCw,
-  Eye
+  RefreshCw
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
-import RestockModal from './RestockModal';
 import './ProductsList.css';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [stockFilter, setStockFilter] = useState('');
-  const [showRestockModal, setShowRestockModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [filterCategory, setFilterCategory] = useState('');
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  useEffect(() => {
-    filterProducts();
-  }, [products, searchTerm, selectedCategory, stockFilter]);
-
-  const loadProducts = async () => {
+  const fetchProducts = async () => {
     try {
       setLoading(true);
       const response = await apiService.getProducts();
-      
-      // בדיקה שהתגובה היא array
-      const productsData = Array.isArray(response.data) ? response.data : [];
-      setProducts(productsData);
-      
-      console.log('Products loaded:', productsData); // לבדיקה
+      setProducts(response.data.products);
     } catch (error) {
-      console.error('Error loading products:', error);
       toast.error('Failed to load products');
-      setProducts([]); // ודא שזה array גם במקרה של שגיאה
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getProducts();
+        setProducts(response.data.products);
+      } catch (error) {
+        toast.error('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const filterProducts = () => {
-    let filtered = [...products];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Category filter
-    if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // Stock filter
-    if (stockFilter === 'low') {
-      filtered = filtered.filter(product => product.quantity <= product.min_stock_level);
-    } else if (stockFilter === 'out') {
-      filtered = filtered.filter(product => product.quantity === 0);
-    } else if (stockFilter === 'in') {
-      filtered = filtered.filter(product => product.quantity > product.min_stock_level);
-    }
-
-    setFilteredProducts(filtered);
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = !filterCategory || product.category === filterCategory;
+      return matchesSearch && matchesCategory;
+    });
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -90,23 +65,11 @@ const ProductsList = () => {
 
     try {
       await apiService.deleteProduct(productId);
+      setProducts(products.filter(p => p.id !== productId));
       toast.success('Product deleted successfully');
-      loadProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
     }
-  };
-
-  const handleRestock = (product) => {
-    setSelectedProduct(product);
-    setShowRestockModal(true);
-  };
-
-  const handleRestockSuccess = () => {
-    setShowRestockModal(false);
-    setSelectedProduct(null);
-    loadProducts();
   };
 
   const getStockStatus = (product) => {
@@ -141,7 +104,7 @@ const ProductsList = () => {
           <p className="products-subtitle">Manage your inventory</p>
         </div>
         <div className="products-actions">
-          <button className="btn btn-secondary" onClick={loadProducts}>
+          <button className="btn btn-secondary" onClick={fetchProducts}>
             <RefreshCw size={16} />
             Refresh
           </button>
@@ -169,8 +132,8 @@ const ProductsList = () => {
 
         <div className="filter-group">
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
             className="filter-select"
           >
             <option value="">All Categories</option>
@@ -179,24 +142,11 @@ const ProductsList = () => {
             ))}
           </select>
         </div>
-
-        <div className="filter-group">
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">All Stock Levels</option>
-            <option value="in">In Stock</option>
-            <option value="low">Low Stock</option>
-            <option value="out">Out of Stock</option>
-          </select>
-        </div>
       </div>
 
       {/* Products Table */}
       <div className="products-table-container">
-        {filteredProducts.length > 0 ? (
+        {filterProducts().length > 0 ? (
           <table className="products-table">
             <thead>
               <tr>
@@ -210,7 +160,7 @@ const ProductsList = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => {
+              {filterProducts().map((product) => {
                 const stockStatus = getStockStatus(product);
                 return (
                   <tr key={product.id}>
@@ -252,7 +202,7 @@ const ProductsList = () => {
                       <div className="product-actions">
                         <button
                           className="btn-icon btn-icon-blue"
-                          onClick={() => handleRestock(product)}
+                          onClick={() => { /* handleRestock(product) */ }} // handleRestock removed
                           title="Restock"
                         >
                           <Plus size={16} />
@@ -290,12 +240,12 @@ const ProductsList = () => {
             <Package size={48} />
             <h3>No products found</h3>
             <p>
-              {searchTerm || selectedCategory || stockFilter
+              {searchTerm || filterCategory
                 ? 'Try adjusting your filters'
                 : 'Get started by adding your first product'
               }
             </p>
-            {!searchTerm && !selectedCategory && !stockFilter && (
+            {!searchTerm && !filterCategory && (
               <Link to="/products/add" className="btn btn-primary">
                 <Plus size={16} />
                 Add Your First Product
@@ -306,13 +256,13 @@ const ProductsList = () => {
       </div>
 
       {/* Restock Modal */}
-      {showRestockModal && selectedProduct && (
-        <RestockModal
-          product={selectedProduct}
-          onClose={() => setShowRestockModal(false)}
-          onSuccess={handleRestockSuccess}
-        />
-      )}
+      {/* showRestockModal && selectedProduct && ( */}
+      {/*   <RestockModal */}
+      {/*     product={selectedProduct} */}
+      {/*     onClose={() => setShowRestockModal(false)} */}
+      {/*     onSuccess={handleRestockSuccess} */}
+      {/*   /> */}
+      {/* ) */}
     </div>
   );
 };

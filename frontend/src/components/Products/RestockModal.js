@@ -28,7 +28,6 @@ const RestockModal = ({ product, onClose, onSuccess }) => {
       toast.success(`Successfully restocked ${product.name}`);
       onSuccess();
     } catch (error) {
-      console.error('Error restocking product:', error);
       toast.error('Failed to restock product');
     } finally {
       setLoading(false);
@@ -41,8 +40,21 @@ const RestockModal = ({ product, onClose, onSuccess }) => {
     }
   };
 
+  const handleOverlayKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div 
+      className="modal-overlay" 
+      onClick={handleOverlayClick}
+      onKeyDown={handleOverlayKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label="Close modal"
+    >
       <div className="modal-content">
         <div className="modal-header">
           <h2>Restock Product</h2>

@@ -26,13 +26,29 @@ const Layout = ({ children }) => {
     return location.pathname === href;
   };
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const handleOverlayKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <div className="layout">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
           className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
+          onClick={handleOverlayClick}
+          onKeyDown={handleOverlayKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar"
         />
       )}
 

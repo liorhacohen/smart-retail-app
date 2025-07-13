@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
-  ArrowLeft, 
   Package, 
+  ArrowLeft, 
   Edit, 
   Trash2, 
   Plus,
-  AlertTriangle,
-  Calendar,
+  BarChart3,
   DollarSign,
-  Hash,
+  Calendar,
   Tag,
-  BarChart3
+  Hash,
+  AlertTriangle
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -26,37 +26,32 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showRestockModal, setShowRestockModal] = useState(false);
 
-  useEffect(() => {
-    loadProduct();
-    loadRestockHistory();
-  }, [id]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiService.getProduct(id);
       setProduct(response.data);
     } catch (error) {
-      console.error('Error loading product:', error);
       toast.error('Failed to load product details');
       navigate('/products');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
-  const loadRestockHistory = async () => {
+  const loadRestockHistory = useCallback(async () => {
     try {
-      const response = await apiService.getRestockHistory();
-      // Filter restocks for this specific product
-      const productRestocks = response.data.filter(restock => 
-        restock.product_id === parseInt(id)
-      );
-      setRestockHistory(productRestocks);
+      const response = await apiService.getRestockHistory(id);
+      setRestockHistory(response.data);
     } catch (error) {
-      console.error('Error loading restock history:', error);
+      toast.error('Failed to load restock history');
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadProduct();
+    loadRestockHistory();
+  }, [loadProduct, loadRestockHistory]);
 
   const handleDeleteProduct = async () => {
     if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -68,7 +63,6 @@ const ProductDetails = () => {
       toast.success('Product deleted successfully');
       navigate('/products');
     } catch (error) {
-      console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
     }
   };
@@ -107,7 +101,7 @@ const ProductDetails = () => {
       <div className="product-not-found">
         <Package size={64} />
         <h2>Product Not Found</h2>
-        <p>The product you're looking for doesn't exist or has been deleted.</p>
+        <p>The product you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
         <Link to="/products" className="btn btn-primary">
           <ArrowLeft size={16} />
           Back to Products
@@ -308,7 +302,7 @@ const ProductDetails = () => {
           <div className="empty-history">
             <BarChart3 size={48} />
             <h3>No Restock History</h3>
-            <p>This product hasn't been restocked yet.</p>
+            <p>This product hasn&apos;t been restocked yet.</p>
             <button 
               className="btn btn-primary"
               onClick={() => setShowRestockModal(true)}

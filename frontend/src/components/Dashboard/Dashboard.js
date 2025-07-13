@@ -14,13 +14,30 @@ import toast from 'react-hot-toast';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [recentRestocks, setRecentRestocks] = useState([]);
 
   useEffect(() => {
-    loadDashboardData();
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [, analyticsResponse] = await Promise.all([
+          apiService.getProducts(),
+          apiService.getAnalytics()
+        ]);
+        
+        // The analytics data is nested under analyticsResponse.data.analytics
+        setAnalytics(analyticsResponse.data.analytics);
+      } catch (error) {
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   const loadDashboardData = async () => {
@@ -29,24 +46,19 @@ const Dashboard = () => {
       
       // Load analytics data
       const analyticsResponse = await apiService.getAnalytics();
-      setAnalytics(analyticsResponse.data);
+      setAnalytics(analyticsResponse.data.analytics);
       
-      // Load low stock products - בדיקה שזה array
+      // Load low stock products
       const lowStockResponse = await apiService.getLowStockProducts();
-      const lowStockData = Array.isArray(lowStockResponse.data) 
-        ? lowStockResponse.data 
-        : (lowStockResponse.data.products || []);
+      const lowStockData = lowStockResponse.data.products || [];
       setLowStockProducts(lowStockData.slice(0, 5)); // Show only first 5
       
-      // Load recent restocks - בדיקה שזה array
+      // Load recent restocks
       const restocksResponse = await apiService.getRestockHistory();
-      const restocksData = Array.isArray(restocksResponse.data) 
-        ? restocksResponse.data 
-        : (restocksResponse.data.restocks || []);
+      const restocksData = restocksResponse.data.restock_logs || [];
       setRecentRestocks(restocksData.slice(0, 5)); // Show only first 5
       
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
       toast.error('Failed to load dashboard data');
       // ודא שכל המשתנים הם arrays במקרה של שגיאה
       setLowStockProducts([]);
@@ -89,14 +101,14 @@ const Dashboard = () => {
     },
     {
       title: 'Total Value',
-      value: `$${analytics?.total_value?.toLocaleString() || '0'}`,
+      value: `$${analytics?.total_stock_value?.toLocaleString() || '0'}`,
       icon: TrendingUp,
       color: 'green',
       trend: '+8%'
     },
     {
       title: 'Recent Restocks',
-      value: analytics?.recent_restocks || 0,
+      value: analytics?.recent_restocks_30_days || 0,
       icon: ShoppingCart,
       color: 'purple',
       trend: '+15%'
@@ -227,7 +239,7 @@ const Dashboard = () => {
                   </div>
                   <div className="alert-content">
                     <h4>{product.name}</h4>
-                    <p>Only {product.quantity} left in stock</p>
+                    <p>Only {product.stock_level || product.quantity} left in stock</p>
                   </div>
                   <div className="alert-actions">
                     <Link to={`/products/${product.id}`} className="btn btn-sm btn-primary">
@@ -262,7 +274,7 @@ const Dashboard = () => {
                   <div className="activity-content">
                     <p><strong>{restock.product_name}</strong> restocked</p>
                     <p className="activity-meta">
-                      +{restock.quantity} units • {new Date(restock.created_at).toLocaleDateString()}
+                      +{restock.quantity_added} units • {new Date(restock.restocked_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
