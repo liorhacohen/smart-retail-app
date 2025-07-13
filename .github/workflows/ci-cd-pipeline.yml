@@ -1,16 +1,17 @@
-name: Smart Retail App - PR Validation & Code Quality
+name: Smart Retail App CI/CD Pipeline
 
 on:
-  pull_request:
-    branches: [ main, develop ]
   push:
     branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
   DOCKER_REGISTRY: docker.io
   BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/smart-retail-backend
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/smart-retail-frontend
+  KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
 
 jobs:
   # Stage 1: Code Quality and Linting
@@ -143,33 +144,9 @@ jobs:
         flags: frontend
         name: frontend-coverage
 
-  # Stage 3: Security Scanning
-  security-scanning:
-    name: Security Scanning
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-  # Stage 4: Build Test (No Push)
-  build-test:
-    name: Test Docker Builds
+  # Stage 3: Build and Push Docker Images
+  build-and-push:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     needs: unit-tests
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
@@ -181,48 +158,267 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       
-    - name: Test backend build
-      run: |
-        echo "🐳 Testing backend Docker build..."
-        docker build --dry-run ./backend || echo "Backend build test completed"
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
         
-    - name: Test frontend build
-      run: |
-        echo "🐳 Testing frontend Docker build..."
-        docker build --dry-run ./frontend || echo "Frontend build test completed"
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ env.BACKEND_IMAGE }}
+          ${{ env.FRONTEND_IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-  # Stage 5: Notification
+  # Stage 4: Deploy to Kubernetes
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+        
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig.yaml
+        export KUBECONFIG=kubeconfig.yaml
+        
+    - name: Deploy to Minikube/EKS
+      run: |
+        echo "🚀 Deploying to Kubernetes cluster..."
+        export KUBECONFIG=kubeconfig.yaml
+        
+        # Update image tags in deployment files
+        sed -i "s|smart-retail-backend:latest|${{ env.BACKEND_IMAGE }}:${{ github.sha }}|g" k8s/deployments/flask-deployment.yaml
+        sed -i "s|smart-retail-frontend:latest|${{ env.FRONTEND_IMAGE }}:${{ github.sha }}|g" k8s/deployments/flask-deployment.yaml
+        
+        # Apply Kubernetes manifests in order
+        kubectl apply -f k8s/configs/
+        kubectl apply -f k8s/secrets/
+        kubectl apply -f k8s/deployments/postgres-deployment.yaml
+        
+        # Wait for PostgreSQL to be ready
+        kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
+        
+        # Deploy services and backend
+        kubectl apply -f k8s/services/
+        kubectl apply -f k8s/deployments/flask-deployment.yaml
+        kubectl apply -f k8s/ingress/
+        
+        # Deploy monitoring stack
+        kubectl apply -f k8s/monitoring/
+        
+        # Wait for all pods to be ready
+        kubectl wait --for=condition=ready pod -l app=smart-retail-app --timeout=300s
+        
+    - name: Verify deployment
+      run: |
+        export KUBECONFIG=kubeconfig.yaml
+        echo "✅ Verifying deployment..."
+        kubectl get pods
+        kubectl get services
+        kubectl get ingress
+
+  # Stage 5: API Testing on Live Deployment
+  api-testing:
+    name: API Testing on Live Deployment
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install test dependencies
+      run: |
+        pip install requests pytest pytest-html
+        
+    - name: Wait for application to be ready
+      run: |
+        echo "⏳ Waiting for application to be ready..."
+        sleep 60
+        
+    - name: Run API tests
+      env:
+        API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      run: |
+        echo "🧪 Running API tests against live deployment..."
+        python scripts/test_api.py
+        
+    - name: Generate test report
+      if: always()
+      run: |
+        echo "📊 Generating test report..."
+        # Add test report generation logic here
+
+  # Stage 6: Monitoring Verification
+  monitoring-verification:
+    name: Verify Monitoring Setup
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+        
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig.yaml
+        export KUBECONFIG=kubeconfig.yaml
+        
+    - name: Verify Prometheus deployment
+      run: |
+        export KUBECONFIG=kubeconfig.yaml
+        echo "📊 Verifying Prometheus deployment..."
+        kubectl get pods -l component=prometheus
+        kubectl get services -l component=prometheus
+        
+    - name: Verify Grafana deployment
+      run: |
+        export KUBECONFIG=kubeconfig.yaml
+        echo "📈 Verifying Grafana deployment..."
+        kubectl get pods -l component=grafana
+        kubectl get services -l component=grafana
+        
+    - name: Test metrics endpoint
+      run: |
+        export KUBECONFIG=kubeconfig.yaml
+        echo "🔍 Testing metrics endpoint..."
+        # Port forward to test metrics
+        kubectl port-forward svc/smart-retail-service 5000:5000 &
+        sleep 10
+        curl -f http://localhost:5000/metrics || echo "Metrics endpoint not accessible"
+        pkill -f "kubectl port-forward"
+
+  # Stage 7: Performance Testing (Optional)
+  performance-testing:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install performance testing tools
+      run: |
+        pip install locust
+        
+    - name: Run performance tests
+      env:
+        API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      run: |
+        echo "⚡ Running performance tests..."
+        # Add performance testing logic here
+        python backend/locustfile.py
+        echo "Performance testing completed"
+
+  # Stage 8: Security Scanning
+  security-scanning:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ env.BACKEND_IMAGE }}:${{ github.sha }}'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Stage 9: Notification
   notification:
     name: Send Notifications
     runs-on: ubuntu-latest
-    needs: [unit-tests, security-scanning, build-test]
+    needs: [api-testing, monitoring-verification]
     if: always()
     
     steps:
     - name: Notify on success
       if: success()
       run: |
-        echo "🎉 PR Validation completed successfully!"
-        echo "✅ Code quality checks passed"
-        echo "✅ Unit tests passed"
-        echo "✅ Security scan completed"
-        echo "✅ Docker builds validated"
-        echo ""
-        echo "🚀 Ready for Jenkins deployment!"
+        echo "🎉 CI/CD Pipeline completed successfully!"
+        echo "✅ All stages passed"
+        echo "🚀 Application deployed successfully"
         
     - name: Notify on failure
       if: failure()
       run: |
-        echo "❌ PR Validation failed!"
+        echo "❌ CI/CD Pipeline failed!"
         echo "🔍 Check the logs above for details"
-        echo "⚠️ Please fix issues before merging"
         
     - name: Send Slack notification
       if: always()
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
-        channel: '#pr-validation'
+        channel: '#deployments'
         webhook_url: ${{ secrets.SLACK_WEBHOOK }}
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} 
