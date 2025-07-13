@@ -630,3 +630,58 @@ The only time you might consider alternatives:
 - **Azure DevOps**: If you're heavily invested in Microsoft ecosystem
 
 **For your Smart Retail App, GitHub Actions is the perfect choice!** 🎯 
+
+## 🚀 **How to Run Your CI/CD Pipeline**
+
+### **1. Automatic Triggers (Recommended)**
+
+Your pipeline runs automatically when:
+
+```yaml
+on:
+  push:
+    branches: [ main, develop ]  # ✅ Triggers on push to main/develop
+  pull_request:
+    branches: [ main ]           # ✅ Triggers on PR to main
+  workflow_dispatch:             # ✅ Manual trigger
+```
+
+**To trigger automatically:**
+```bash
+# Push to main branch
+git add .
+git commit -m "feat: add new product feature"
+git push origin main
+
+# Or create a pull request
+git checkout -b feature/new-product
+git add .
+git commit -m "feat: add new product feature"
+git push origin feature/new-product
+# Then create PR on GitHub
+```
+
+### **2. Manual Trigger (Workflow Dispatch)**
+
+**Via GitHub Web Interface:**
+1. Go to your GitHub repository
+2. Click **Actions** tab
+3. Select **Smart Retail App CI/CD Pipeline**
+4. Click **Run workflow** button
+5. Choose branch and click **Run workflow**
+
+**Via GitHub CLI:**
+```bash
+# Install GitHub CLI if you haven't
+brew install gh
+
+# Login to GitHub
+gh auth login
+
+# Trigger workflow manually
+gh workflow run "Smart Retail App CI/CD Pipeline" --ref main
+```
+
+### **3. Local Testing (Before CI/CD)**
+
+Let me help you test the pipeline locally first: 
