@@ -419,6 +419,6 @@ jobs:
       with:
         status: ${{ job.status }}
         channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        text: 'CI/CD Pipeline ${{ job.status }}'
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} 

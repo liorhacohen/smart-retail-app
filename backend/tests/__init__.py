@@ -1,1 +1,1 @@
-# Tests package for Smart Retail App 
+# Tests package for Smart Retail App
