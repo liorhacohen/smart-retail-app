@@ -29,47 +29,18 @@ const AddProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.name.trim()) {
-      toast.error('Product name is required');
-      return;
-    }
-    
-    if (!formData.sku.trim()) {
-      toast.error('SKU is required');
-      return;
-    }
-    
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      toast.error('Valid price is required');
-      return;
-    }
-    
-    if (!formData.quantity || parseInt(formData.quantity) < 0) {
-      toast.error('Valid quantity is required');
+    if (!formData.name || !formData.price || !formData.quantity) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
     try {
       setLoading(true);
-      
-      const productData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity),
-        min_stock_level: parseInt(formData.min_stock_level) || 10
-      };
-      
-      await apiService.createProduct(productData);
-      toast.success('Product created successfully!');
+      await apiService.createProduct(formData);
+      toast.success('Product created successfully');
       navigate('/products');
     } catch (error) {
-      console.error('Error creating product:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Failed to create product');
-      }
+      toast.error('Failed to create product');
     } finally {
       setLoading(false);
     }

@@ -1,207 +1,173 @@
-# Inventory Management System
+# 🛍️ Smart Retail App
 
-A comprehensive inventory management system for retail store chains built with Flask, PostgreSQL, Docker, and Kubernetes.
+A comprehensive inventory management system for retail store chains built with Flask, React, PostgreSQL, Docker, and Kubernetes.
 
-## Features
+[![CI/CD Pipeline](https://github.com/your-username/smart-retail-app/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/your-username/smart-retail-app/actions)
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 
-- **Real-time Stock Tracking**: Monitor inventory levels across all products
-- **Low Stock Alerts**: Automatic notifications when items fall below threshold
-- **Restocking Management**: Easy restocking operations with full audit trail
-- **Analytics Dashboard**: Stock trends and analytics for better decision making
-- **RESTful API**: Complete REST API for all operations
-- **Containerized Deployment**: Docker & Kubernetes deployment for production scaling
-- **High Availability**: Multiple replicas and health checks
+## 🚀 Features
 
-## Technology Stack
+- **📦 Real-time Stock Tracking**: Monitor inventory levels across all products
+- **⚠️ Low Stock Alerts**: Automatic notifications when items fall below threshold
+- **📈 Restocking Management**: Easy restocking operations with full audit trail
+- **📊 Analytics Dashboard**: Stock trends and analytics for better decision making
+- **🔌 RESTful API**: Complete REST API for all operations
+- **🐳 Containerized Deployment**: Docker & Kubernetes deployment for production scaling
+- **📈 High Availability**: Multiple replicas and health checks
+- **🔍 Monitoring**: Prometheus metrics and Grafana dashboards
+- **🔄 CI/CD Pipeline**: Automated testing, building, and deployment
 
-- **Backend**: Flask (Python)
-- **Database**: PostgreSQL
-- **Containerization**: Docker & Docker Compose
-- **Orchestration**: Kubernetes (Minikube/EKS)
-- **API**: RESTful endpoints with JSON responses
+## 🏗️ Project Structure
 
-## Deployment Options
+```
+smart-retail-app/
+├── backend/                  # Flask backend application
+│   ├── app.py               # Main Flask application
+│   ├── requirements.txt     # Production dependencies
+│   ├── requirements-dev.txt # Development dependencies
+│   ├── Dockerfile          # Backend container configuration
+│   ├── tests/              # Unit tests
+│   ├── locustfile.py       # Performance testing
+│   ├── init.sql            # Database initialization
+│   └── sample_products.json # Sample data
+│
+├── frontend/                # React frontend application
+│   ├── src/                # React source code
+│   ├── public/             # Static assets
+│   ├── package.json        # Node.js dependencies
+│   ├── Dockerfile          # Frontend container configuration
+│   └── nginx.conf          # Nginx configuration
+│
+├── k8s/                     # Kubernetes manifests
+│   ├── configs/            # ConfigMaps
+│   ├── deployments/        # Application deployments
+│   ├── services/           # Service definitions
+│   ├── ingress/            # Ingress rules
+│   ├── monitoring/         # Prometheus & Grafana
+│   └── secrets/            # Kubernetes secrets
+│
+├── scripts/                 # Utility scripts
+│   ├── setup-ci-cd.sh      # CI/CD setup script
+│   ├── test-pipeline-local.sh # Local testing script
+│   ├── load_sample_data.py # Data loading utilities
+│   └── health_check.py     # Health check utilities
+│
+├── docs/                    # Documentation
+│   ├── README.md           # Detailed documentation
+│   ├── CI_CD_SETUP_GUIDE.md # CI/CD setup guide
+│   ├── COMPLETE_GUIDE.md   # Complete user guide
+│   └── TESTING_GUIDE.md    # Testing documentation
+│
+├── .github/workflows/       # CI/CD pipeline
+│   └── ci-cd-pipeline.yml  # GitHub Actions workflow
+│
+├── docker-compose.yml       # Local development setup
+├── start.sh                # Quick start script
+└── README.md               # This file
+```
 
-### Option 1: Local Development (Docker Compose)
-### Option 2: Production-Ready (Kubernetes)
+## 🛠️ Technology Stack
 
----
+### Backend
+- **Flask**: Python web framework
+- **PostgreSQL**: Primary database
+- **SQLAlchemy**: ORM for database operations
+- **Prometheus**: Metrics collection
+- **Gunicorn**: WSGI server for production
 
-## 🚀 Quick Start - Docker Compose (Development)
+### Frontend
+- **React**: JavaScript framework
+- **Axios**: HTTP client
+- **Recharts**: Data visualization
+- **React Router**: Client-side routing
+- **Nginx**: Web server for production
+
+### Infrastructure
+- **Docker**: Containerization
+- **Kubernetes**: Container orchestration
+- **Prometheus**: Monitoring and alerting
+- **Grafana**: Metrics visualization
+- **GitHub Actions**: CI/CD pipeline
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Docker and Docker Compose installed
-- Git (for cloning the repository)
-- curl or Postman (for testing API endpoints)
+- Docker and Docker Compose
+- Git
+- Node.js (for frontend development)
+- Python 3.11+ (for backend development)
 
-### Steps
+### Option 1: Docker Compose (Recommended for Development)
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd inventory-management-system
+   git clone https://github.com/your-username/smart-retail-app.git
+   cd smart-retail-app
    ```
 
-2. **Build and start the application**
+2. **Start the application**
    ```bash
    docker-compose up --build
    ```
 
 3. **Access the application**
-   - API: http://localhost:5000
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+   - API Health Check: http://localhost:5000/api/health
    - pgAdmin (optional): http://localhost:8080
-   - Health Check: http://localhost:5000/api/health
 
----
+### Option 2: Local Development
 
-## ⚙️ Production Deployment - Kubernetes
+1. **Setup Backend**
+   ```bash
+   cd backend
+   pip install -r requirements-dev.txt
+   python app.py
+   ```
 
-### Prerequisites
-- **macOS**: 
-  ```bash
-  brew install minikube kubectl docker
-  ```
-- **Linux/Windows**: Install Docker Desktop, Minikube, kubectl
-- Docker Hub account (for storing images)
+2. **Setup Frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
 
-### Step 1: Build and Push Docker Image
+3. **Setup Database**
+   ```bash
+   # Start PostgreSQL (using Docker)
+   docker run -d --name postgres \
+     -e POSTGRES_DB=inventory_db \
+     -e POSTGRES_USER=inventory_user \
+     -e POSTGRES_PASSWORD=inventory_pass \
+     -p 5432:5432 \
+     postgres:15-alpine
+   ```
 
-```bash
-# Build the image
-docker buildx build -t your-username/smart-retail-app:latest .
+## 📚 API Documentation
 
-# Login to Docker Hub
-docker login
+### Core Endpoints
 
-# Push to Docker Hub
-docker push your-username/smart-retail-app:latest
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/products` | Get all products |
+| POST | `/api/products` | Create new product |
+| GET | `/api/products/<id>` | Get specific product |
+| PUT | `/api/products/<id>` | Update product |
+| DELETE | `/api/products/<id>` | Delete product |
+| POST | `/api/products/<id>/restock` | Restock product |
+| GET | `/api/restocks` | Get restock history |
+| GET | `/api/products/low-stock` | Get low stock products |
+| GET | `/api/products/analytics` | Get analytics |
 
-### Step 2: Start Kubernetes Cluster
-
-```bash
-# Start Minikube
-minikube start
-
-# Enable Ingress
-minikube addons enable ingress
-
-# Verify cluster is running
-kubectl get nodes
-```
-
-### Step 3: Deploy to Kubernetes
-
-```bash
-# Navigate to k8s directory
-cd k8s
-
-# Deploy all components (order matters!)
-kubectl apply -f configs/configmap.yaml
-kubectl apply -f secrets/secrets.yaml
-kubectl apply -f deployments/postgres-deployment.yaml
-
-# Wait for PostgreSQL to be ready
-kubectl get pods -w
-# Wait until postgres pod shows "1/1 Running"
-
-# Deploy services and backend
-kubectl apply -f services/services.yaml
-kubectl apply -f deployments/flask-deployment.yaml
-kubectl apply -f ingress/ingress.yaml
-```
-
-### Step 4: Access the Application
-
-```bash
-# Start tunnel for external access
-minikube tunnel
-# Keep this terminal open!
-
-# In a new terminal, test the API
-curl http://localhost/api/health
-curl http://localhost/api/products
-```
-
-### Step 5: Create Test Data
+### Example Usage
 
 ```bash
 # Create a product
-curl -X POST http://localhost/api/products \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test Product",
-    "sku": "TEST-001",
-    "stock_level": 50,
-    "price": 29.99
-  }'
-
-# View analytics
-curl http://localhost/api/products/analytics
-```
-
----
-
-## 📁 Project Structure
-
-```
-inventory-management-system/
-├── app.py                    # Flask application
-├── requirements.txt          # Python dependencies
-├── Dockerfile               # Container configuration
-├── docker-compose.yml       # Development setup
-├── init.sql                # Database initialization
-├── k8s/                    # Kubernetes manifests
-│   ├── configs/
-│   │   └── configmap.yaml
-│   ├── secrets/
-│   │   └── secrets.yaml
-│   ├── deployments/
-│   │   ├── flask-deployment.yaml
-│   │   └── postgres-deployment.yaml
-│   ├── services/
-│   │   └── services.yaml
-│   └── ingress/
-│       └── ingress.yaml
-├── test_api.py             # API testing script
-└── README.md               # This file
-```
-
----
-
-## 🔧 API Endpoints
-
-### Inventory Management
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | Get all products with stock levels |
-| GET | `/api/products/<id>` | Get specific product details |
-| POST | `/api/products` | Add new product |
-| PUT | `/api/products/<id>` | Update product details |
-| DELETE | `/api/products/<id>` | Delete product |
-
-### Restocking Operations
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/products/<id>/restock` | Restock specific product |
-| GET | `/api/restocks` | Get restocking history |
-
-### Analytics
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products/low-stock` | Get low stock products |
-| GET | `/api/products/analytics` | Get stock analytics |
-
----
-
-## 📊 API Usage Examples
-
-### Create a New Product
-```bash
-curl -X POST http://localhost/api/products \
+curl -X POST http://localhost:5000/api/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Gaming Mouse",
@@ -211,291 +177,169 @@ curl -X POST http://localhost/api/products \
     "min_stock_threshold": 10,
     "price": 79.99
   }'
+
+# Get all products
+curl http://localhost:5000/api/products
+
+# Get analytics
+curl http://localhost:5000/api/products/analytics
 ```
 
-### Restock a Product
-```bash
-curl -X POST http://localhost/api/products/1/restock \
-  -H "Content-Type: application/json" \
-  -d '{
-    "quantity": 25,
-    "notes": "Weekly restock delivery"
-  }'
-```
+## 🏭 Production Deployment
 
-### Get Low Stock Products
-```bash
-curl http://localhost/api/products/low-stock
-```
+### Kubernetes Deployment
 
-### Get Analytics
-```bash
-curl http://localhost/api/products/analytics
-```
-
----
-
-## 🗄️ Database Schema
-
-### Products Table
-- `id`: Primary key
-- `name`: Product name
-- `sku`: Stock keeping unit (unique)
-- `description`: Product description
-- `stock_level`: Current stock quantity
-- `min_stock_threshold`: Low stock alert threshold
-- `price`: Product price
-- `created_at`: Creation timestamp
-- `updated_at`: Last update timestamp
-
-### Restock Logs Table
-- `id`: Primary key
-- `product_id`: Foreign key to products
-- `quantity_added`: Amount restocked
-- `previous_stock`: Stock level before restock
-- `new_stock`: Stock level after restock
-- `restocked_at`: Restock timestamp
-- `notes`: Optional notes
-
----
-
-## 🔍 Troubleshooting
-
-### Docker Compose Issues
-
-1. **Port already in use**
+1. **Setup Kubernetes Cluster**
    ```bash
-   docker-compose down
-   # Change ports in docker-compose.yml if needed
-   ```
-
-2. **Database connection failed**
-   ```bash
-   docker-compose logs db
-   docker-compose restart db
-   ```
-
-### Kubernetes Issues
-
-1. **Pods not starting**
-   ```bash
-   kubectl get pods
-   kubectl describe pod <pod-name>
-   kubectl logs <pod-name>
-   ```
-
-2. **Cannot access application**
-   ```bash
-   # Check if tunnel is running
-   minikube tunnel
-   
-   # Check ingress status
-   kubectl get ingress
-   
-   # Alternative: use port-forward
-   kubectl port-forward svc/flask-service 5000:5000
-   # Then access: http://localhost:5000
-   ```
-
-3. **Image pull errors**
-   ```bash
-   # Make sure image exists on Docker Hub
-   docker pull your-username/smart-retail-app:latest
-   
-   # Update deployment with correct image name
-   kubectl set image deployment/flask-deployment flask-backend=your-username/smart-retail-app:latest
-   ```
-
-### Useful Commands
-
-#### Docker Compose
-```bash
-# View running containers
-docker-compose ps
-
-# View logs
-docker-compose logs -f backend
-
-# Clean restart
-docker-compose down -v
-docker-compose up --build
-```
-
-#### Kubernetes
-```bash
-# View all resources
-kubectl get all
-
-# View pod details
-kubectl describe pod <pod-name>
-
-# View logs
-kubectl logs -f deployment/flask-deployment
-
-# Delete all resources
-kubectl delete -f k8s/
-
-# Reset Minikube
-minikube delete
-minikube start
-```
-
----
-
-## 🧪 Testing
-
-### Automated Testing
-```bash
-# Run the included test script
-python3 test_api.py
-```
-
-### Manual Testing
-```bash
-# Health check
-curl http://localhost/api/health
-
-# Create and test products
-curl -X POST http://localhost/api/products \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Product", "sku": "TEST001", "stock_level": 100}'
-
-# Check analytics
-curl http://localhost/api/products/analytics
-```
-
----
-
-## 🚀 For Your Project Partner
-
-### Quick Setup Instructions
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd inventory-management-system
-   ```
-
-2. **Choose deployment method:**
-
-   **Option A: Simple Docker Setup**
-   ```bash
-   docker-compose up --build
-   # Access: http://localhost:5000
-   ```
-
-   **Option B: Full Kubernetes Setup**
-   ```bash
-   # Install prerequisites (macOS)
-   brew install minikube kubectl docker
-   
-   # Start Kubernetes
+   # For local development
    minikube start
    minikube addons enable ingress
    
-   # Deploy application
-   cd k8s
-   kubectl apply -f configs/
-   kubectl apply -f secrets/
-   kubectl apply -f deployments/postgres-deployment.yaml
-   # Wait for postgres...
-   kubectl apply -f services/
-   kubectl apply -f deployments/flask-deployment.yaml
-   kubectl apply -f ingress/
-   
-   # Access application
-   minikube tunnel  # Keep running
-   # Test: curl http://localhost/api/health
+   # For production (EKS)
+   # Follow AWS EKS setup guide
    ```
 
-3. **Test the API**
+2. **Deploy Application**
    ```bash
-   python3 test_api.py
+   # Apply Kubernetes manifests
+   kubectl apply -f k8s/configs/
+   kubectl apply -f k8s/secrets/
+   kubectl apply -f k8s/deployments/
+   kubectl apply -f k8s/services/
+   kubectl apply -f k8s/ingress/
+   kubectl apply -f k8s/monitoring/
    ```
 
----
+3. **Access the Application**
+   ```bash
+   # Get external IP
+   kubectl get ingress
+   
+   # Access via external IP
+   curl http://<external-ip>/api/health
+   ```
 
-## 📝 Environment Variables
+### CI/CD Pipeline
 
-### Docker Compose
-Variables are set in `docker-compose.yml` - no additional setup needed.
+The project includes a comprehensive CI/CD pipeline with:
 
-### Kubernetes
-Configured via ConfigMaps and Secrets:
-- **ConfigMap**: `inventory-config` (non-sensitive settings)
-- **Secret**: `inventory-secrets` (passwords)
+- **Code Quality**: Linting and formatting checks
+- **Testing**: Unit and integration tests
+- **Security**: Vulnerability scanning
+- **Building**: Docker image creation
+- **Deployment**: Kubernetes deployment
+- **Monitoring**: Health checks and metrics
 
----
+To setup the CI/CD pipeline:
 
-## 🔐 Security Considerations
-
-### Development
-- Default passwords are used (fine for development)
-- No authentication required
-- All traffic is HTTP
-
-### Production Recommendations
-1. **Change default passwords** in secrets
-2. **Enable HTTPS** with proper certificates
-3. **Add API authentication** (JWT tokens)
-4. **Set up proper firewall** rules
-5. **Use managed databases** (AWS RDS, Google Cloud SQL)
-6. **Implement monitoring** (Prometheus, Grafana)
-
----
-
-## 📈 Monitoring and Maintenance
-
-### Health Checks
-- **Backend**: `/api/health`
-- **Database**: Built-in PostgreSQL health checks
-- **Kubernetes**: Liveness and readiness probes
-
-### Backup Strategy
 ```bash
-# Docker Compose
-docker-compose exec db pg_dump -U inventory_user inventory_db > backup.sql
+# Run the setup script
+./scripts/setup-ci-cd.sh
 
-# Kubernetes
-kubectl exec deployment/postgres-deployment -- pg_dump -U inventory_user inventory_db > backup.sql
+# Configure GitHub secrets (see docs/github-secrets-template.txt)
+# Push to main branch to trigger pipeline
 ```
 
----
+## 📊 Monitoring
 
-## 🎯 Next Steps (Optional Enhancements)
+### Prometheus Metrics
 
-1. **Monitoring**: Add Prometheus + Grafana
-2. **CI/CD**: GitHub Actions pipeline
-3. **Frontend**: React dashboard
-4. **Authentication**: JWT-based API security
-5. **Cloud Deployment**: AWS EKS, Google GKE
-6. **Load Testing**: Stress testing with k6
+The application exposes Prometheus metrics at `/metrics`:
 
----
+- HTTP request rates and latencies
+- Database connection health
+- Business metrics (stock levels, restock operations)
+- Custom application metrics
+
+### Grafana Dashboards
+
+Access Grafana dashboards for:
+
+- Application performance metrics
+- Database performance
+- Business analytics
+- System health monitoring
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Backend tests
+cd backend
+pytest tests/ -v --cov=app
+
+# Frontend tests
+cd frontend
+npm test
+
+# Local pipeline test
+./scripts/test-pipeline-local.sh
+```
+
+### Test Coverage
+
+- Backend: Unit tests for all API endpoints
+- Frontend: Component and integration tests
+- E2E: API testing against live deployment
+- Performance: Load testing with Locust
+
+## 🔧 Development
+
+### Code Quality
+
+```bash
+# Lint Python code
+cd backend
+flake8 .
+black .
+isort .
+
+# Lint React code
+cd frontend
+npm run lint
+```
+
+### Adding New Features
+
+1. Create feature branch
+2. Implement changes
+3. Add tests
+4. Update documentation
+5. Submit pull request
+
+## 📖 Documentation
+
+- **[Complete Guide](docs/COMPLETE_GUIDE.md)**: Comprehensive user guide
+- **[CI/CD Setup Guide](docs/CI_CD_SETUP_GUIDE.md)**: Pipeline configuration
+- **[Testing Guide](docs/TESTING_GUIDE.md)**: Testing strategies
+- **[API Documentation](docs/README.md)**: Detailed API reference
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
+2. Create a feature branch
 3. Make your changes
-4. Test thoroughly (both Docker and Kubernetes)
-5. Commit your changes (`git commit -am 'Add new feature'`)
-6. Push to the branch (`git push origin feature/new-feature`)
-7. Create a Pull Request
-
----
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For questions and support:
-- Create an issue in the GitHub repository
-- Check the troubleshooting section above
-- Review Docker and Kubernetes documentation
+- **Issues**: [GitHub Issues](https://github.com/your-username/smart-retail-app/issues)
+- **Documentation**: [docs/](docs/)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/smart-retail-app/discussions)
 
-**Happy coding! 🎉**
+## 🏆 Acknowledgments
+
+- Flask community for the excellent web framework
+- React team for the powerful frontend library
+- Kubernetes community for container orchestration
+- Prometheus and Grafana for monitoring solutions
+
+---
+
+**Made with ❤️ for smart retail management** 

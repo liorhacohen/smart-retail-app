@@ -18,7 +18,7 @@ services:
     # Mount volume for data persistence
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
     
     # Internal port for database
     ports:
@@ -38,7 +38,7 @@ services:
   # Flask Backend Service
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: inventory_backend
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
     
     # Mount volume for development (optional - for code changes without rebuild)
     volumes:
-      - .:/app
+      - ./backend:/app
     
     # Internal network
     networks:

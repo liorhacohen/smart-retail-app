@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Package, Save, ArrowLeft } from 'lucide-react';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
-import './AddProduct.css'; // נשתמש באותו CSS כמו AddProduct
+import './EditProduct.css';
 
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -19,34 +17,35 @@ const EditProduct = () => {
     quantity: '',
     min_stock_level: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadProduct();
-  }, [id]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
-      setLoadingData(true);
       const response = await apiService.getProduct(id);
-      const product = response.data;
+      const product = response.data.product;
       
+      // Map API fields to form fields
       setFormData({
         name: product.name || '',
         description: product.description || '',
         sku: product.sku || '',
         category: product.category || '',
-        price: product.price?.toString() || '',
-        quantity: product.quantity?.toString() || '',
-        min_stock_level: product.min_stock_level?.toString() || ''
+        price: product.price || '',
+        quantity: product.stock_level || product.quantity || '', // API returns stock_level
+        min_stock_level: product.min_stock_threshold || product.min_stock_level || '' // API returns min_stock_threshold
       });
     } catch (error) {
-      console.error('Error loading product:', error);
       toast.error('Failed to load product');
       navigate('/products');
     } finally {
-      setLoadingData(false);
+      setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,53 +58,36 @@ const EditProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.name.trim()) {
-      toast.error('Product name is required');
-      return;
-    }
-    
-    if (!formData.sku.trim()) {
-      toast.error('SKU is required');
-      return;
-    }
-    
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      toast.error('Valid price is required');
-      return;
-    }
-    
-    if (!formData.quantity || parseInt(formData.quantity) < 0) {
-      toast.error('Valid quantity is required');
+    if (!formData.name || !formData.price || !formData.quantity) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
     try {
-      setLoading(true);
+      setSubmitting(true);
       
-      const productData = {
-        ...formData,
+      // Map form fields to API expected format
+      const updateData = {
+        name: formData.name,
+        description: formData.description,
+        sku: formData.sku,
+        category: formData.category,
         price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity),
-        min_stock_level: parseInt(formData.min_stock_level) || 10
+        stock_level: parseInt(formData.quantity), // Map quantity to stock_level
+        min_stock_threshold: parseInt(formData.min_stock_level) // Map min_stock_level to min_stock_threshold
       };
       
-      await apiService.updateProduct(id, productData);
-      toast.success('Product updated successfully!');
-      navigate(`/products/${id}`);
+      await apiService.updateProduct(id, updateData);
+      toast.success('Product updated successfully');
+      navigate('/products');
     } catch (error) {
-      console.error('Error updating product:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Failed to update product');
-      }
+      toast.error('Failed to update product');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (loadingData) {
+  if (loading) {
     return (
       <div className="add-product">
         <div className="add-product-loading">
@@ -254,16 +236,16 @@ const EditProduct = () => {
                 type="button"
                 onClick={() => navigate(`/products/${id}`)}
                 className="btn btn-secondary"
-                disabled={loading}
+                disabled={submitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={submitting}
               >
-                {loading ? (
+                {submitting ? (
                   'Updating...'
                 ) : (
                   <>

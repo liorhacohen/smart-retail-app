@@ -31,8 +31,25 @@ echo "✅ Docker and Docker Compose are installed"
 # Check if .env file exists
 if [ ! -f .env ]; then
     echo "📝 Creating .env file from template..."
-    cp .env.example .env
-    echo "✅ .env file created. You can modify it if needed."
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo "✅ .env file created. You can modify it if needed."
+    else
+        echo "⚠️  No .env.example found. Creating basic .env file..."
+        cat > .env << EOF
+# Database Configuration
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=inventory_db
+DB_USER=inventory_user
+DB_PASSWORD=inventory_pass
+
+# Flask Configuration
+FLASK_ENV=development
+FLASK_DEBUG=true
+EOF
+        echo "✅ Basic .env file created."
+    fi
 else
     echo "✅ .env file already exists"
 fi
@@ -122,7 +139,7 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     if command_exists python3; then
         echo "🧪 Running API tests..."
-        python3 test_api.py
+        python3 scripts/test_api.py
     else
         echo "❌ Python 3 is not installed. Please install Python 3 to run tests."
         echo "You can test manually using curl or Postman."

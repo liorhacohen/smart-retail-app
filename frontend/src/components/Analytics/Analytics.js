@@ -6,41 +6,30 @@ import toast from 'react-hot-toast';
 import './Analytics.css';
 
 const Analytics = () => {
-  const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
   const [restockHistory, setRestockHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAnalyticsData();
-  }, []);
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        const [analyticsResponse, restocksResponse] = await Promise.all([
+          apiService.getAnalytics(),
+          apiService.getRestockHistory()
+        ]);
+        
+        setAnalytics(analyticsResponse.data.analytics);
+        setRestockHistory(restocksResponse.data.restock_logs || []);
+      } catch (error) {
+        toast.error('Failed to load analytics data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadAnalyticsData = async () => {
-    try {
-      setLoading(true);
-      
-      const [analyticsResponse, restocksResponse] = await Promise.all([
-        apiService.getAnalytics(),
-        apiService.getRestockHistory()
-      ]);
-      
-      setAnalytics(analyticsResponse.data);
-      
-      // בדיקה שהתגובה היא array
-      const restocksData = Array.isArray(restocksResponse.data) 
-        ? restocksResponse.data 
-        : (restocksResponse.data.restocks || []);
-      
-      setRestockHistory(restocksData);
-      
-      console.log('Restocks loaded:', restocksData); // לבדיקה
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-      toast.error('Failed to load analytics data');
-      setRestockHistory([]); // ודא שזה array גם במקרה של שגיאה
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchAnalytics();
+  }, []);
 
   if (loading) {
     return (
