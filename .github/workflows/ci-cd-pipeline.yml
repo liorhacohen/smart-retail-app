@@ -411,14 +411,4 @@ jobs:
       if: failure()
       run: |
         echo "❌ CI/CD Pipeline failed!"
-        echo "🔍 Check the logs above for details"
-        
-    - name: Send Slack notification
-      if: always()
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        text: 'CI/CD Pipeline ${{ job.status }}'
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} 
+        echo "🔍 Check the logs above for details" 
