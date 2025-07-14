@@ -14,13 +14,21 @@ pipeline {
                     apt-get update
                     apt-get install -y git
                     
-                    # Clean and clone the repository
-                    rm -rf .git || true
+                    # Clean the workspace completely
+                    rm -rf * .git .* 2>/dev/null || true
+                    
+                    # Clone the repository
                     git clone https://github.com/liorhacohen/smart-retail-app .
                     
                     echo "=== Repository cloned successfully ==="
                     ls -la
                 '''
+            }
+        }
+
+        stage('Install Python venv (if needed)') {
+            steps {
+                sh 'apt-get update && apt-get install -y python3-venv'
             }
         }
 
@@ -43,12 +51,12 @@ pipeline {
         stage('Backend: Install & Lint') {
             steps {
                 dir('backend') {
-                    sh 'python3 -m venv venv'
-                    sh '. venv/bin/activate && pip install --upgrade pip'
-                    sh '. venv/bin/activate && pip install -r requirements.txt flake8 black isort'
-                    sh '. venv/bin/activate && flake8 .'
-                    sh '. venv/bin/activate && black --check .'
-                    sh '. venv/bin/activate && isort --check-only .'
+                    // Install dependencies globally for CI
+                    sh 'pip3 install --upgrade pip'
+                    sh 'pip3 install -r requirements.txt flake8 black isort'
+                    sh 'flake8 .'
+                    sh 'black --check .'
+                    sh 'isort --check-only .'
                 }
             }
         }
@@ -56,8 +64,8 @@ pipeline {
         stage('Backend: Test') {
             steps {
                 dir('backend') {
-                    sh '. venv/bin/activate && pip install pytest pytest-cov'
-                    sh '. venv/bin/activate && pytest --maxfail=1 --disable-warnings'
+                    sh 'pip3 install pytest pytest-cov'
+                    sh 'pytest --maxfail=1 --disable-warnings'
                 }
             }
         }
