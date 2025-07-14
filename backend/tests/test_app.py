@@ -1,6 +1,7 @@
 """
 Unit tests for Smart Retail App Flask backend
 """
+
 import json
 import os
 import sys

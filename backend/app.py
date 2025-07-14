@@ -199,9 +199,9 @@ def add_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers[
-        "Strict-Transport-Security"
-    ] = "max-age=31536000; includeSubDomains"
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
     return response
 
 
@@ -655,9 +655,11 @@ def get_stock_analytics():
                     "total_stock_value": round(total_stock_value, 2),
                     "recent_restocks_30_days": recent_restocks,
                     "low_stock_percentage": round(
-                        (low_stock_count / total_products * 100)
-                        if total_products > 0
-                        else 0,
+                        (
+                            (low_stock_count / total_products * 100)
+                            if total_products > 0
+                            else 0
+                        ),
                         2,
                     ),
                     "top_stock_products": [
