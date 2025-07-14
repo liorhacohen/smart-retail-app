@@ -73,6 +73,34 @@ services:
       timeout: 10s
       retries: 3
 
+  # Jenkins CI/CD Service
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: inventory_jenkins
+    restart: unless-stopped
+    
+    # Port mapping
+    ports:
+      - "8081:8080"  # Changed from 8080 to avoid conflict with pgAdmin
+      - "50000:50000"
+    
+    # Volumes for Jenkins data and Docker socket
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/workspace  # Mount project directory
+    
+    # Environment variables
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - JENKINS_OPTS=--httpPort=8080
+    
+    # Internal network
+    networks:
+      - inventory_network
+
   # Optional: pgAdmin for database management (development only)
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -106,6 +134,8 @@ volumes:
   postgres_data:
     driver: local
   pgadmin_data:
+    driver: local
+  jenkins_data:
     driver: local
 
 # Define internal network
