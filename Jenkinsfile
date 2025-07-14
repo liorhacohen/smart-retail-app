@@ -37,6 +37,10 @@ pipeline {
                     npm --version
                     python3 --version
                     pip3 --version
+                    
+                    # Check Python paths
+                    which python3
+                    ls -la /usr/bin/python*
                 '''
             }
         }
@@ -45,17 +49,39 @@ pipeline {
             steps {
                 dir('backend') {
                     sh '''
-                        # Create virtual environment
-                        python3 -m venv venv
+                        # Debug: Check current directory and Python
+                        echo "=== Current directory ==="
+                        pwd
+                        ls -la
                         
-                        # Activate virtual environment and upgrade pip
+                        echo "=== Python executable check ==="
+                        which python3
+                        python3 --version
+                        
+                        # Remove any existing venv directory
+                        echo "=== Cleaning existing venv ==="
+                        rm -rf venv
+                        
+                        # Create virtual environment with --copies to avoid symlink issues
+                        echo "=== Creating virtual environment ==="
+                        python3 -m venv --copies venv
+                        
+                        # Verify venv creation
+                        echo "=== Verifying venv creation ==="
+                        ls -la venv/
+                        ls -la venv/bin/
+                        
+                        # Activate virtual environment and install dependencies
+                        echo "=== Activating venv and installing dependencies ==="
                         . venv/bin/activate
-                        pip install --upgrade pip
+                        which python
+                        python --version
                         
-                        # Install dependencies and linting tools
+                        pip install --upgrade pip
                         pip install -r requirements.txt flake8 black isort
                         
                         # Run linting (make non-blocking for now)
+                        echo "=== Running linting ==="
                         flake8 . || echo "Linting issues found but continuing..."
                         black --check . || echo "Black formatting issues found but continuing..."
                         isort --check-only . || echo "Import sorting issues found but continuing..."
