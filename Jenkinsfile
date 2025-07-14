@@ -9,16 +9,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                sh '''
+                    # Install git in the container
+                    apt-get update
+                    apt-get install -y git
+                    
+                    # Clean and clone the repository
+                    rm -rf .git || true
+                    git clone https://github.com/liorhacohen/smart-retail-app .
+                    
+                    echo "=== Repository cloned successfully ==="
+                    ls -la
+                '''
             }
         }
 
         stage('Install Python and Dependencies') {
             steps {
                 sh '''
-                    # Update package list
-                    apt-get update
-                    
                     # Install Python 3, pip, and venv
                     apt-get install -y python3 python3-pip python3-venv
                     
