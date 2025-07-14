@@ -8,21 +8,14 @@ pipeline {
             }
         }
 
-        stage('Setup Environment') {
+        stage('Check Available Tools') {
             steps {
                 sh '''
-                    # Install Node.js LTS
-                    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-                    sudo apt-get install -y nodejs
-                    
-                    # Install Python 3.11 (if not available, this will install the latest available)
-                    sudo apt-get update
-                    sudo apt-get install -y python3 python3-pip python3-venv
-                    
-                    # Verify installations
-                    node --version
-                    npm --version
-                    python3 --version
+                    echo "Checking available tools..."
+                    which node || echo "Node.js not found"
+                    which npm || echo "npm not found"
+                    which python3 || echo "Python3 not found"
+                    which pip3 || echo "pip3 not found"
                 '''
             }
         }
