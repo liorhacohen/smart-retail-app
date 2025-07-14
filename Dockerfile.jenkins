@@ -2,28 +2,18 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Install Docker and sudo
+# Install basic tools and sudo
 RUN apt-get update && \
     apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
     curl \
-    gnupg \
-    lsb-release \
     sudo \
     wget
 
-# Add Docker's official GPG key
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+# Install Docker CLI from binary (alternative approach)
+RUN curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-24.0.7.tgz | \
+    tar xzf - --strip 1 -C /usr/local/bin docker/docker
 
-# Add Docker repository
-RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Install Docker (updated package names)
-RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Add jenkins user to docker group and sudo group
-RUN usermod -aG docker jenkins
+# Add jenkins user to sudo group
 RUN usermod -aG sudo jenkins
 
 # Allow jenkins user to use sudo without password
