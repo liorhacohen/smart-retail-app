@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'
+            args '-u root:root'
+        }
+    }
 
     stages {
         stage('Checkout') {
@@ -8,14 +13,21 @@ pipeline {
             }
         }
 
-        stage('Check Available Tools') {
+        stage('Install Python and Dependencies') {
             steps {
                 sh '''
-                    echo "Checking available tools..."
-                    which node || echo "Node.js not found"
-                    which npm || echo "npm not found"
-                    which python3 || echo "Python3 not found"
-                    which pip3 || echo "pip3 not found"
+                    # Update package list
+                    apt-get update
+                    
+                    # Install Python 3, pip, and venv
+                    apt-get install -y python3 python3-pip python3-venv
+                    
+                    # Verify all installations
+                    echo "=== Installed Versions ==="
+                    node --version
+                    npm --version
+                    python3 --version
+                    pip3 --version
                 '''
             }
         }
