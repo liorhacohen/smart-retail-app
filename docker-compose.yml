@@ -97,9 +97,13 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
       - JENKINS_OPTS=--httpPort=8080
     
+    # Run as root to access Docker socket
+    user: root
+    
     # Internal network
     networks:
       - inventory_network
+
 
   # Optional: pgAdmin for database management (development only)
   pgadmin:
