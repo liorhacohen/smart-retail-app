@@ -3,12 +3,6 @@ pipeline {
 
     environment {
         PYTHON_VERSION = '3.11'
-        NODE_VERSION = '18'
-    }
-
-    tools {
-        nodejs "${env.NODE_VERSION}"
-        // If you have the Python plugin, you can add: python "${env.PYTHON_VERSION}"
     }
 
     stages {
@@ -43,6 +37,11 @@ pipeline {
         stage('Frontend: Install & Lint') {
             steps {
                 dir('frontend') {
+                    // Install Node.js using NodeSource setup script
+                    sh '''
+                        curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+                        sudo apt-get install -y nodejs
+                    '''
                     sh 'npm ci'
                     sh 'npm run lint'
                 }
@@ -62,4 +61,4 @@ pipeline {
             echo 'Pipeline finished.'
         }
     }
-} 
+}
