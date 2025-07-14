@@ -20,6 +20,8 @@ const Layout = ({ children }) => {
     { name: 'Products', href: '/products', icon: Package },
     { name: 'Add Product', href: '/products/add', icon: PlusCircle },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    // Jenkins link (external)
+    { name: 'Jenkins', href: 'http://localhost:8080', icon: BarChart3, external: true },
   ];
 
   const isActiveRoute = (href) => {
@@ -70,6 +72,20 @@ const Layout = ({ children }) => {
         <nav className="sidebar-nav">
           {navigation.map((item) => {
             const Icon = item.icon;
+            if (item.external) {
+              return (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="sidebar-nav-item"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon className="sidebar-nav-icon" size={20} />
+                  <span className="sidebar-nav-text">{item.name}</span>
+                </a>
+              );
+            }
             return (
               <Link
                 key={item.name}
