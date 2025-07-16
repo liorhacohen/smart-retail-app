@@ -345,7 +345,7 @@ Kubernetes Cluster
 ### CI/CD Pipeline
 
 ```
-GitHub Actions
+Jenkins Pipeline
 ├── Code Quality
 │   ├── Linting
 │   ├── Testing
@@ -469,12 +469,12 @@ UI Updated
 
 *This architecture document provides a comprehensive overview of the Smart Retail App's system design, components, and technical decisions. It serves as a reference for developers, DevOps engineers, and stakeholders involved in the project.* 
 
-## ✅ **Your Pipeline is GitHub Actions Native**
+## ✅ **Your Pipeline is Jenkins Native**
 
-### **1. GitHub Actions Specific Features Used:**
+### **1. Jenkins Specific Features Used:**
 
 ```yaml
-# Your pipeline uses GitHub Actions specific syntax:
+# Your pipeline uses Jenkins specific syntax:
 on:
   push:
     branches: [ main, develop ]
@@ -482,7 +482,7 @@ on:
     branches: [ main ]
   workflow_dispatch:  # Manual trigger
 
-# GitHub Secrets integration:
+# Jenkins Secrets integration:
 env:
   DOCKER_REGISTRY: docker.io
   BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/smart-retail-backend
@@ -490,10 +490,10 @@ env:
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
 ```
 
-### **2. GitHub Actions Marketplace Actions Used:**
+### **2. Jenkins Pipeline Highlights:**
 
 ```yaml
-# Official GitHub Actions:
+# Official Jenkins Pipeline:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v4
 - uses: actions/setup-node@v4
@@ -514,7 +514,7 @@ env:
 - uses: 8398a7/action-slack@v3
 ```
 
-## 🚀 **Why GitHub Actions is Perfect for Your Project:**
+## 🚀 **Why Jenkins is Perfect for Your Project:**
 
 ### **1. Language Support** ✅
 - **Python** (Flask backend) - Native support
@@ -539,9 +539,9 @@ env:
 - **Caching** - Speed up builds
 - **Artifacts** - Share build outputs
 
-## 📊 **GitHub Actions vs Alternatives:**
+## 📊 **Jenkins vs Alternatives:**
 
-| Feature | GitHub Actions | Jenkins | GitLab CI | Azure DevOps |
+| Feature | Jenkins | GitLab CI | Azure DevOps |
 |---------|---------------|---------|-----------|--------------|
 | **Setup Complexity** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
 | **Repository Integration** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
@@ -549,7 +549,7 @@ env:
 | **Marketplace** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
 | **Kubernetes Support** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 
-## 🎯 **Your Pipeline's GitHub Actions Strengths:**
+## 🎯 **Your Pipeline's Jenkins Strengths:**
 
 ### **1. Multi-Stage Pipeline** ✅
 ```yaml
@@ -587,7 +587,7 @@ services:
       POSTGRES_PASSWORD: test_password
 ```
 
-## 🔧 **GitHub Actions Optimizations You Can Add:**
+## 🔧 **Jenkins Optimizations You Can Add:**
 
 ### **1. Caching Improvements:**
 ```yaml
@@ -613,11 +613,11 @@ runs-on: self-hosted  # For private infrastructure
 
 ## 🎉 **Conclusion:**
 
-**Your CI/CD pipeline is EXCELLENT for GitHub Actions because:**
+**Your CI/CD pipeline is EXCELLENT for Jenkins because:**
 
-✅ **Built specifically for GitHub Actions**  
-✅ **Uses GitHub Actions best practices**  
-✅ **Leverages GitHub's ecosystem**  
+✅ **Built specifically for Jenkins**  
+✅ **Uses Jenkins best practices**  
+✅ **Leverages Jenkins' ecosystem**  
 ✅ **Cost-effective for your use case**  
 ✅ **Scalable and maintainable**  
 ✅ **Enterprise-ready features**  
@@ -625,11 +625,10 @@ runs-on: self-hosted  # For private infrastructure
 **You're already using the right platform!** 🎯
 
 The only time you might consider alternatives:
-- **Jenkins**: If you need complex custom workflows
 - **GitLab CI**: If you move to GitLab
 - **Azure DevOps**: If you're heavily invested in Microsoft ecosystem
 
-**For your Smart Retail App, GitHub Actions is the perfect choice!** 🎯 
+**For your Smart Retail App, Jenkins is the perfect choice!** 🎯 
 
 ## 🚀 **How to Run Your CI/CD Pipeline**
 
@@ -685,3 +684,75 @@ gh workflow run "Smart Retail App CI/CD Pipeline" --ref main
 ### **3. Local Testing (Before CI/CD)**
 
 Let me help you test the pipeline locally first: 
+
+## 🛠️ Jenkins CI/CD Integration
+
+### Overview
+Jenkins is used as an alternative or complement to GitHub Actions for continuous integration and continuous deployment (CI/CD) in this project. It automates the process of building, testing, and deploying both the backend (Python/Flask) and frontend (React) components.
+
+### Jenkins Pipeline Highlights
+- **Automated Build & Test:** Jenkins checks out the code, installs dependencies, runs linting, and executes tests for both backend and frontend.
+- **Python & Node.js Support:** The pipeline sets up Python (with venv) and Node.js environments, ensuring both parts of the stack are tested.
+- **Dockerized Jenkins:** Jenkins runs in a Docker container, making it easy to reproduce and manage the CI environment.
+- **Customizable Stages:** The Jenkinsfile defines stages for checkout, backend linting/testing, frontend linting/testing, and can be extended for deployment.
+- **Debugging Steps:** The pipeline includes debug output and non-blocking lint/test steps to help diagnose issues in CI.
+
+### Jenkinsfile Location
+- The pipeline is defined in the root-level `Jenkinsfile`.
+- Both backend and frontend are covered in a single pipeline for simplicity.
+
+### Example Jenkinsfile Stages
+```
+1. Checkout
+2. Install system dependencies (Python, pip, venv, Node.js)
+3. Backend: Create venv, install dependencies, lint, test
+4. Frontend: Install dependencies, lint, test
+5. (Optional) Build, deploy, or publish artifacts
+```
+
+### Jenkins in the Architecture
+
+```
+┌──────────────┐
+│  Developer   │
+└──────┬───────┘
+       │  (push/PR)
+       ▼
+┌──────────────┐
+│   GitHub     │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Jenkins    │  ◄─────────────┐
+└──────┬───────┘                │
+       │                        │
+       ▼                        │
+┌──────────────┐                │
+│ Build/Test   │                │
+│ Backend      │                │
+│ Frontend     │                │
+└──────┬───────┘                │
+       │                        │
+       ▼                        │
+┌──────────────┐                │
+│ Deploy/Push  │                │
+└──────────────┘                │
+       │                        │
+       ▼                        │
+┌──────────────┐                │
+│ Kubernetes   │                │
+└──────────────┘                │
+```
+
+- Jenkins can be triggered by code pushes, pull requests, or manually.
+- It orchestrates the build, test, and deploy steps, integrating with Docker, Kubernetes, and other tools as needed.
+
+### Jenkins vs. GitHub Actions
+- **Jenkins**: Offers more customization, can run on your own infrastructure, and is ideal for complex or self-hosted CI/CD needs.
+- **GitHub Actions**: Integrated with GitHub, easier for simple pipelines, and great for open source or cloud-native workflows.
+- Both can be used in parallel or as backups for each other.
+
+### References
+- Jenkinsfile in project root
+- Jenkins documentation: https://www.jenkins.io/doc/ 

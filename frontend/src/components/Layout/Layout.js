@@ -21,7 +21,13 @@ const Layout = ({ children }) => {
     { name: 'Add Product', href: '/products/add', icon: PlusCircle },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     // Jenkins link (external)
-    { name: 'Jenkins', href: 'http://localhost:8080', icon: BarChart3, external: true },
+    { name: 'Jenkins', href: 'http://localhost:8081', icon: BarChart3, external: true },
+    // Grafana link (external)
+    { name: 'Grafana', href: 'http://localhost:3001', icon: BarChart3, external: true },
+    // Grafana link (external)
+    { name: 'Prometheus', href: ' http://localhost:9090/targets', icon: BarChart3, external: true },
+
+   
   ];
 
   const isActiveRoute = (href) => {
