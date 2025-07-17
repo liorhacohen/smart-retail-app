@@ -1,13 +1,31 @@
 -- Database initialization script for Inventory Management System
 
--- Create database (if using this script outside Docker)
--- CREATE DATABASE inventory_db;
-
--- Create user and grant privileges
--- This is handled by environment variables in docker-compose
-
 -- Create extension for UUID generation (optional, for future use)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create products table
+CREATE TABLE IF NOT EXISTS products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    sku VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    stock_level INTEGER DEFAULT 0,
+    min_stock_threshold INTEGER DEFAULT 10,
+    price FLOAT DEFAULT 0.0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create restock_logs table
+CREATE TABLE IF NOT EXISTS restock_logs (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+    quantity_added INTEGER NOT NULL,
+    previous_stock INTEGER NOT NULL,
+    new_stock INTEGER NOT NULL,
+    restocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT
+);
 
 -- Insert sample data for testing (optional)
 -- This will be executed after tables are created by SQLAlchemy
