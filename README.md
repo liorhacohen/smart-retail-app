@@ -90,7 +90,7 @@ smart-retail-app/
 - **Kubernetes**: Container orchestration
 - **Prometheus**: Monitoring and alerting
 - **Grafana**: Metrics visualization
-- **GitHub Actions**: CI/CD pipeline
+- **Jenkins**: CI/CD pipeline
 
 ## 🚀 Quick Start
 
