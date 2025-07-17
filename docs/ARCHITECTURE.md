@@ -29,7 +29,7 @@ The Smart Retail App is a full-stack inventory management system built with mode
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Monitoring    │    │   CI/CD         │    │   Kubernetes    │
-│   (Prometheus)  │    │   (GitHub)      │    │   (K8s)         │
+│   (Prometheus)  │    │   (Jenkins)     │    │   (K8s)         │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 

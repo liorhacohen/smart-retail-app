@@ -2,7 +2,7 @@
 
 A comprehensive inventory management system for retail store chains built with Flask, React, PostgreSQL, Docker, and Kubernetes.
 
-[![CI/CD Pipeline](https://github.com/your-username/smart-retail-app/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/your-username/smart-retail-app/actions)
+[![Jenkins](https://img.shields.io/badge/jenkins-passing-brightgreen?style=for-the-badge&logo=jenkins)](https://www.jenkins.io/)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
@@ -18,7 +18,7 @@ A comprehensive inventory management system for retail store chains built with F
 - **🐳 Containerized Deployment**: Docker & Kubernetes deployment for production scaling
 - **📈 High Availability**: Multiple replicas and health checks
 - **🔍 Monitoring**: Prometheus metrics and Grafana dashboards
-- **🔄 CI/CD Pipeline**: Automated testing, building, and deployment
+- **🔄 CI/CD Pipeline**: Automated testing, building, and deployment (via Jenkins)
 
 ## 🏗️ Project Structure
 
@@ -230,15 +230,26 @@ The project includes a comprehensive CI/CD pipeline with:
 - **Deployment**: Kubernetes deployment
 - **Monitoring**: Health checks and metrics
 
-To setup the CI/CD pipeline:
+To setup the CI/CD pipeline with Jenkins:
 
 ```bash
-# Run the setup script
+# Run the setup script (optional, if you have Jenkins helper scripts)
 ./scripts/setup-ci-cd.sh
 
-# Configure GitHub secrets (see docs/github-secrets-template.txt)
-# Push to main branch to trigger pipeline
+# Configure Jenkins credentials (see Jenkins documentation for credentials setup)
+# Push to your repository to trigger the Jenkins pipeline
 ```
+
+The Jenkins pipeline is defined in the root-level `Jenkinsfile`.
+
+You can run Jenkins locally using Docker:
+
+```bash
+docker build -t smart-retail-jenkins -f Dockerfile.jenkins .
+docker run -d -p 8080:8080 -p 50000:50000 --name jenkins smart-retail-jenkins
+```
+
+Then access Jenkins at http://localhost:8080 and set up your pipeline using the provided `Jenkinsfile`.
 
 ## 📊 Monitoring
 
@@ -311,7 +322,7 @@ npm run lint
 ## 📖 Documentation
 
 - **[Complete Guide](docs/COMPLETE_GUIDE.md)**: Comprehensive user guide
-- **[CI/CD Setup Guide](docs/CI_CD_SETUP_GUIDE.md)**: Pipeline configuration
+- **[CI/CD Setup Guide](docs/CI_CD_SETUP_GUIDE.md)**: Jenkins pipeline configuration
 - **[Testing Guide](docs/TESTING_GUIDE.md)**: Testing strategies
 - **[API Documentation](docs/README.md)**: Detailed API reference
 

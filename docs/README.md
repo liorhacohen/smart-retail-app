@@ -465,7 +465,7 @@ kubectl exec deployment/postgres-deployment -- pg_dump -U inventory_user invento
 ## 🎯 Next Steps (Optional Enhancements)
 
 1. **Monitoring**: Add Prometheus + Grafana
-2. **CI/CD**: GitHub Actions pipeline
+2. **CI/CD**: Jenkins pipeline
 3. **Frontend**: React dashboard
 4. **Authentication**: JWT-based API security
 5. **Cloud Deployment**: AWS EKS, Google GKE
